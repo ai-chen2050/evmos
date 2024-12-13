@@ -31,6 +31,7 @@ docs/cosmos-sdk
 docs/ethermint
 docs/ibc-go
 dist
+cache
 tools-stamp
 docs-tools-stamp
 proto-tools-stamp
@@ -41,6 +42,11 @@ secret.yml
 artifacts/*
 tmp-swagger-gen
 github.com/
+.env
+coverage
+coverage.json
+typechain
+typechain-types
 # vue/
 
 # Local docker volume mappings
