@@ -4,49 +4,43 @@ parent:
 -->
 
 <div align="center">
-  <h1> Evmos </h1>
+  <h1> Hetu Hub </h1>
 </div>
 
 <div align="center">
-  <a href="https://github.com/evmos/evmos/releases/latest">
-    <img alt="Version" src="https://img.shields.io/github/tag/tharsis/evmos.svg" />
+  <a href="https://github.com/hetu-project/hetu-hub/releases/latest">
+    <img alt="Version" src="https://img.shields.io/github/tag/hetu-project/hetu-hub.svg" />
   </a>
-  <a href="https://github.com/evmos/evmos/blob/main/LICENSE">
-    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/tharsis/evmos.svg" />
+  <a href="https://github.com/hetu-project/hetu-hub/blob/main/LICENSE">
+    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/hetu-project/hetu-hub.svg" />
   </a>
-  <a href="https://pkg.go.dev/github.com/evmos/evmos">
-    <img alt="GoDoc" src="https://godoc.org/github.com/evmos/evmos?status.svg" />
+  <a href="https://pkg.go.dev/github.com/hetu-project/hetu-hub">
+    <img alt="GoDoc" src="https://godoc.org/github.com/hetu-project/hetu-hub?status.svg" />
   </a>
-  <a href="https://goreportcard.com/report/github.com/evmos/evmos">
-    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/evmos/evmos"/>
-  </a>
-  <a href="https://bestpractices.coreinfrastructure.org/projects/5018">
-    <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/tharsis/evmos">
+  <a href="https://goreportcard.com/report/github.com/hetu-project/hetu-hub">
+    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/hetu-project/hetu-hub"/>
   </a>
 </div>
 <div align="center">
-  <a href="https://discord.gg/evmos">
+  <a href="https://discord.gg/hetu">
     <img alt="Discord" src="https://img.shields.io/discord/809048090249134080.svg" />
   </a>
-  <a href="https://github.com/evmos/evmos/actions?query=branch%3Amain+workflow%3ALint">
-    <img alt="Lint Status" src="https://github.com/evmos/evmos/actions/workflows/lint.yml/badge.svg?branch=main" />
+  <a href="https://github.com/hetu-project/hetu-hub/actions?query=branch%3Amain+workflow%3ALint">
+    <img alt="Lint Status" src="https://github.com/hetu-project/hetu-hub/actions/workflows/lint.yml/badge.svg?branch=main" />
   </a>
-  <a href="https://codecov.io/gh/evmos/evmos">
-    <img alt="Code Coverage" src="https://codecov.io/gh/evmos/evmos/branch/main/graph/badge.svg" />
-  </a>
-  <a href="https://twitter.com/EvmosOrg">
-    <img alt="Twitter Follow Evmos" src="https://img.shields.io/twitter/follow/EvmosOrg"/>
+  <a href="https://codecov.io/gh/hetu-project/hetu-hub">
+    <img alt="Code Coverage" src="https://codecov.io/gh/hetu-project/hetu-hub/branch/main/graph/badge.svg" />
   </a>
 </div>
 
-Evmos is a scalable, high-throughput Proof-of-Stake blockchain
-that is fully compatible and interoperable with Ethereum.
-It's built using the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/)
-which runs on top of the [Tendermint Core](https://github.com/tendermint/tendermint) consensus engine.
+Hetu Hub is a scalable, high-throughput blockchain that is fully compatible and interoperable with Ethereum.
+It's built using the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/) and implements
+[Narwhal](https://github.com/MystenLabs/narwhal) + [Bullshark](https://github.com/MystenLabs/sui/tree/main/consensus/bullshark) consensus mechanism
+for improved performance and scalability.
 
 ## Documentation
 
-Our documentation is hosted in a [separate repository](https://github.com/evmos/docs) and can be found at [docs.evmos.org](https://docs.evmos.org).
+Our documentation is hosted in a [separate repository](https://github.com/hetu-project/docs) and can be found at [docs.hetu.org](https://docs.hetu.org).
 Head over there and check it out.
 
 **Note**: Requires [Go 1.20+](https://golang.org/dl/)
@@ -54,37 +48,36 @@ Head over there and check it out.
 ## Installation
 
 For prerequisites and detailed build instructions
-please read the [Installation](https://docs.evmos.org/protocol/evmos-cli) instructions.
+please read the [Installation](https://docs.hetu.org/protocol/hetu-cli) instructions.
 Once the dependencies are installed, run:
 
-```bash
-make install
-```
 
-Or check out the latest [release](https://github.com/evmos/evmos/releases).
+make install
+
+Or check out the latest [release](https://github.com/hetu-project/hetu-hub/releases).
 
 ## Quick Start
 
-To learn how the Evmos works from a high-level perspective,
-go to the [Protocol Overview](https://docs.evmos.org/protocol) section from the documentation.
-You can also check the instructions to [Run a Node](https://docs.evmos.org/protocol/evmos-cli#run-an-evmos-node).
+To learn how the Hetu Hub works from a high-level perspective,
+go to the [Protocol Overview](https://docs.hetu.org/protocol) section from the documentation.
+You can also check the instructions to [Run a Node](https://docs.hetu.org/protocol/hetu-cli#run-a-hetu-node).
 
 ## Community
 
-The following chat channels and forums are a great spot to ask questions about Evmos:
+The following chat channels and forums are a great spot to ask questions about Hetu Hub:
 
-- [Evmos Twitter](https://twitter.com/EvmosOrg)
-- [Evmos Discord](https://discord.gg/evmos)
-- [Evmos Forum](https://commonwealth.im/evmos)
+- [Open an Issue](https://github.com/hetu-project/hetu-hub/issues)
+- [Hetu Protocol](https://github.com/hetu-project#hetu-key-research)
+- [Follow us on Twitter](https://x.com/hetu_protocol)
 
 ## Contributing
 
-Looking for a good place to start contributing?
-Check out some
-[`good first issues`](https://github.com/evmos/evmos/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
+We welcome all contributions! There are many ways to contribute to the project, including but not limited to:
+
+- Cloning code repo and opening a [PR](https://github.com/hetu-project/hetu-hub/pulls).
+- Submitting feature requests or [bugs](https://github.com/hetu-project/hetu-hub/issues).
+- Improving our product or contribution [documentation](./docs/).
+- Contributing [use cases](./demos/) to a feature request.
 
 For additional instructions, standards and style guides, please refer to the [Contributing](./CONTRIBUTING.md) document.
 
-## Careers
-
-See our open positions on [Greenhouse](https://boards.eu.greenhouse.io/evmos).
