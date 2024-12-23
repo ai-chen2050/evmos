@@ -12,7 +12,8 @@ KEYRING="test"
 KEYALGO="eth_secp256k1"
 LOGLEVEL="info"
 # Set dedicated home directory for the evmosd instance
-HOMEDIR="$HOME/.tmp-evmosd"
+# HOMEDIR="$HOME/.tmp-evmosd"
+HOMEDIR="/Users/blake/work/nagara/code/hetu/evmos/.vscode/evmosd-config"
 # to trace evm
 #TRACE="--trace"
 TRACE=""
@@ -162,4 +163,4 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
-evmosd start --metrics "$TRACE" --log_level $LOGLEVEL --minimum-gas-prices=0.0001aevmos --json-rpc.api eth,txpool,personal,net,debug,web3 --api.enable --home "$HOMEDIR"
+evmosd start --with-tendermint=false --metrics "$TRACE" --log_level $LOGLEVEL --minimum-gas-prices=0.0001aevmos --json-rpc.api eth,txpool,personal,net,debug,web3 --api.enable --home "$HOMEDIR" --address "tcp://0.0.0.0:26658"
