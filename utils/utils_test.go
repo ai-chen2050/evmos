@@ -88,32 +88,32 @@ func TestGetEvmosAddressFromBech32(t *testing.T) {
 		},
 		{
 			"invalid bech32 address",
-			"evmos",
+			"hhub",
 			"",
 			true,
 		},
 		{
 			"invalid address bytes",
-			"evmos1123",
+			"hhub1123",
 			"",
 			true,
 		},
 		{
 			"evmos address",
-			"evmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueuafmxps",
-			"evmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueuafmxps",
+			"hhub1qql8ag4cluz6r4dz28p3w00dnc9w8ueu2nsn28",
+			"hhub1qql8ag4cluz6r4dz28p3w00dnc9w8ueu2nsn28",
 			false,
 		},
 		{
 			"cosmos address",
 			"cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
-			"evmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueuafmxps",
+			"hhub1qql8ag4cluz6r4dz28p3w00dnc9w8ueu2nsn28",
 			false,
 		},
 		{
 			"osmosis address",
 			"osmo1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhnecd2",
-			"evmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueuafmxps",
+			"hhub1qql8ag4cluz6r4dz28p3w00dnc9w8ueu2nsn28",
 			false,
 		},
 	}
@@ -137,7 +137,7 @@ func TestEvmosCoinDenom(t *testing.T) {
 	}{
 		{
 			"valid denom - native coin",
-			"aevmos",
+			"ahhub",
 			false,
 		},
 		{

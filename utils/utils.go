@@ -30,20 +30,20 @@ import (
 )
 
 const (
-	// MainnetChainID defines the Evmos EIP155 chain ID for mainnet
-	MainnetChainID = "evmos_9001"
-	// TestnetChainID defines the Evmos EIP155 chain ID for testnet
-	TestnetChainID = "evmos_9000"
-	// BaseDenom defines the Evmos mainnet denomination
-	BaseDenom = "aevmos"
+	// MainnetChainID defines the Hhubd EIP155 chain ID for mainnet
+	MainnetChainID = "hhub_9001"
+	// TestnetChainID defines the Hhubd EIP155 chain ID for testnet
+	TestnetChainID = "hhub_9000"
+	// BaseDenom defines the Hhubd mainnet denomination
+	BaseDenom = "ahhub"
 )
 
-// IsMainnet returns true if the chain-id has the Evmos mainnet EIP155 chain prefix.
+// IsMainnet returns true if the chain-id has the Hhubd mainnet EIP155 chain prefix.
 func IsMainnet(chainID string) bool {
 	return strings.HasPrefix(chainID, MainnetChainID)
 }
 
-// IsTestnet returns true if the chain-id has the Evmos testnet EIP155 chain prefix.
+// IsTestnet returns true if the chain-id has the Hhubd testnet EIP155 chain prefix.
 func IsTestnet(chainID string) bool {
 	return strings.HasPrefix(chainID, TestnetChainID)
 }
