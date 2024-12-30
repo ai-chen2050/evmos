@@ -28,8 +28,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/evmos/evmos/v12/contracts"
-	"github.com/evmos/evmos/v12/x/erc20/types"
+	"github.com/hetu-project/hetu-hub/v1/contracts"
+	"github.com/hetu-project/hetu-hub/v1/x/erc20/types"
 )
 
 var _ types.MsgServer = &Keeper{}

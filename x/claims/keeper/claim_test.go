@@ -12,13 +12,13 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/evmos/evmos/v12/crypto/ethsecp256k1"
-	"github.com/evmos/evmos/v12/testutil"
-	utiltx "github.com/evmos/evmos/v12/testutil/tx"
-	evmostypes "github.com/evmos/evmos/v12/types"
-	inflationtypes "github.com/evmos/evmos/v12/x/inflation/types"
+	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
+	"github.com/hetu-project/hetu-hub/v1/testutil"
+	utiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
+	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
+	inflationtypes "github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 
-	"github.com/evmos/evmos/v12/x/claims/types"
+	"github.com/hetu-project/hetu-hub/v1/x/claims/types"
 )
 
 func (suite *KeeperTestSuite) TestGetClaimableAmountForAction() {

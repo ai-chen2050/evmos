@@ -39,9 +39,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	evmostypes "github.com/evmos/evmos/v12/types"
-	"github.com/evmos/evmos/v12/x/evm/statedb"
-	"github.com/evmos/evmos/v12/x/evm/types"
+	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
+	"github.com/hetu-project/hetu-hub/v1/x/evm/statedb"
+	"github.com/hetu-project/hetu-hub/v1/x/evm/types"
 )
 
 var _ types.QueryServer = Keeper{}

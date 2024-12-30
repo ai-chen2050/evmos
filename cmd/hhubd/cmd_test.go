@@ -9,15 +9,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/stretchr/testify/require"
 
-	"github.com/evmos/evmos/v12/app"
-	hhubd "github.com/evmos/evmos/v12/cmd/hhubd"
-	"github.com/evmos/evmos/v12/utils"
+	"github.com/hetu-project/hetu-hub/v1/app"
+	hhubd "github.com/hetu-project/hetu-hub/v1/cmd/hhubd"
+	"github.com/hetu-project/hetu-hub/v1/utils"
 )
 
 func TestInitCmd(t *testing.T) {
 	rootCmd, _ := hhubd.NewRootCmd()
 	rootCmd.SetArgs([]string{
-		"init",       // Test the init cmd
+		"init",      // Test the init cmd
 		"hhub-test", // Moniker
 		fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json, in case it already exists
 		fmt.Sprintf("--%s=%s", flags.FlagChainID, utils.TestnetChainID+"-1"),

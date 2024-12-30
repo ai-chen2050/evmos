@@ -51,17 +51,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	evmosclient "github.com/evmos/evmos/v12/client"
-	"github.com/evmos/evmos/v12/client/debug"
-	"github.com/evmos/evmos/v12/encoding"
-	"github.com/evmos/evmos/v12/ethereum/eip712"
-	evmosserver "github.com/evmos/evmos/v12/server"
-	servercfg "github.com/evmos/evmos/v12/server/config"
-	srvflags "github.com/evmos/evmos/v12/server/flags"
+	evmosclient "github.com/hetu-project/hetu-hub/v1/client"
+	"github.com/hetu-project/hetu-hub/v1/client/debug"
+	"github.com/hetu-project/hetu-hub/v1/encoding"
+	"github.com/hetu-project/hetu-hub/v1/ethereum/eip712"
+	evmosserver "github.com/hetu-project/hetu-hub/v1/server"
+	servercfg "github.com/hetu-project/hetu-hub/v1/server/config"
+	srvflags "github.com/hetu-project/hetu-hub/v1/server/flags"
 
-	"github.com/evmos/evmos/v12/app"
-	cmdcfg "github.com/evmos/evmos/v12/cmd/config"
-	evmoskr "github.com/evmos/evmos/v12/crypto/keyring"
+	"github.com/hetu-project/hetu-hub/v1/app"
+	cmdcfg "github.com/hetu-project/hetu-hub/v1/cmd/config"
+	evmoskr "github.com/hetu-project/hetu-hub/v1/crypto/keyring"
 )
 
 const (

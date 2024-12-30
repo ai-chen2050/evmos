@@ -5,8 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v3 "github.com/evmos/evmos/v12/x/inflation/migrations/v3"
-	"github.com/evmos/evmos/v12/x/inflation/types"
+	v3 "github.com/hetu-project/hetu-hub/v1/x/inflation/migrations/v3"
+	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 	"github.com/stretchr/testify/require"
 )
 

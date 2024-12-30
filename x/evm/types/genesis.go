@@ -18,7 +18,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/evmos/evmos/v12/types"
+	"github.com/hetu-project/hetu-hub/v1/types"
 )
 
 // Validate performs a basic validation of a GenesisAccount fields.

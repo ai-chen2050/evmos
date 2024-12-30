@@ -29,10 +29,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/evmos/evmos/v12/x/evm/statedb"
-	evmtypes "github.com/evmos/evmos/v12/x/evm/types"
+	"github.com/hetu-project/hetu-hub/v1/x/evm/statedb"
+	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
 
-	inflationtypes "github.com/evmos/evmos/v12/x/inflation/types"
+	inflationtypes "github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 )
 
 // AccountKeeper defines the expected interface needed to retrieve account info.

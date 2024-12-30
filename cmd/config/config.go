@@ -19,7 +19,7 @@ package config
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/evmos/evmos/v12/types"
+	"github.com/hetu-project/hetu-hub/v1/types"
 )
 
 const (

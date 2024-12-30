@@ -61,11 +61,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/evmos/evmos/v12/indexer"
-	ethdebug "github.com/evmos/evmos/v12/rpc/namespaces/ethereum/debug"
-	"github.com/evmos/evmos/v12/server/config"
-	srvflags "github.com/evmos/evmos/v12/server/flags"
-	evmostypes "github.com/evmos/evmos/v12/types"
+	"github.com/hetu-project/hetu-hub/v1/indexer"
+	ethdebug "github.com/hetu-project/hetu-hub/v1/rpc/namespaces/ethereum/debug"
+	"github.com/hetu-project/hetu-hub/v1/server/config"
+	srvflags "github.com/hetu-project/hetu-hub/v1/server/flags"
+	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 )
 
 // DBOpener is a function to open `application.db`, potentially with customized options.
