@@ -4,8 +4,12 @@ import (
 	"math/big"
 	"testing"
 
+	tmlog "cosmossdk.io/log"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/simapp/params"
+	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/hetu-project/hetu-hub/v1/app"
@@ -16,10 +20,6 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/utils"
 	"github.com/hetu-project/hetu-hub/v1/x/evm/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 )
 
 func TestKVIndexer(t *testing.T) {

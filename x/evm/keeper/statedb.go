@@ -22,7 +22,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"

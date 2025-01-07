@@ -8,7 +8,7 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	chainparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	chainparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/hetu-project/hetu-hub/v1/ethereum/eip712"

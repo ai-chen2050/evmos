@@ -35,25 +35,25 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	abciserver "github.com/tendermint/tendermint/abci/server"
-	tcmd "github.com/tendermint/tendermint/cmd/cometbft/commands"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
-	pvm "github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/rpc/client/local"
-	dbm "github.com/tendermint/tm-db"
+	abciserver "github.com/cometbft/cometbft/abci/server"
+	tcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	tmos "github.com/cometbft/cometbft/libs/os"
+	"github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	pvm "github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
+	"github.com/cometbft/cometbft/rpc/client/local"
+	dbm "github.com/cosmos/cosmos-db"
 
-	"github.com/cosmos/cosmos-sdk/server/rosetta"
-	crgserver "github.com/cosmos/cosmos-sdk/server/rosetta/lib/server"
+	"github.com/cosmos/rosetta"
+	crgserver "github.com/cosmos/rosetta/lib/server"
 
 	ethmetricsexp "github.com/ethereum/go-ethereum/metrics/exp"
 
 	errorsmod "cosmossdk.io/errors"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
@@ -406,10 +406,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 
 		app.RegisterTxService(clientCtx)
 		app.RegisterTendermintService(clientCtx)
-
-		if a, ok := app.(types.ApplicationQueryService); ok {
-			a.RegisterNodeService(clientCtx)
-		}
+		app.RegisterNodeService(clientCtx, config.Config)
 	}
 
 	metrics, err := startTelemetry(config)

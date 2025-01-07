@@ -18,14 +18,13 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
 	"github.com/hetu-project/hetu-hub/v1/testutil"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibcgotesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcgotesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 
 	"github.com/hetu-project/hetu-hub/v1/contracts"
-	claimstypes "github.com/hetu-project/hetu-hub/v1/x/claims/types"
 	"github.com/hetu-project/hetu-hub/v1/x/erc20/types"
 	inflationtypes "github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 	vestingtypes "github.com/hetu-project/hetu-hub/v1/x/vesting/types"
@@ -49,7 +48,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 	// Setup Cosmos <=> Evmos IBC relayer
 	sourceChannel := "channel-292"
-	evmosChannel := claimstypes.DefaultAuthorizedChannels[1]
+	evmosChannel := "test"
 	path := fmt.Sprintf("%s/%s", transfertypes.PortID, evmosChannel)
 
 	timeoutHeight := clienttypes.NewHeight(0, 100)

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -33,7 +34,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/client/cli"
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/keeper"
@@ -231,3 +231,10 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}
 }
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+

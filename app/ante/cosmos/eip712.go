@@ -26,6 +26,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	txsigning "cosmossdk.io/x/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -55,13 +56,13 @@ func init() {
 // CONTRACT: Tx must implement SigVerifiableTx interface
 type LegacyEip712SigVerificationDecorator struct {
 	ak              evmtypes.AccountKeeper
-	signModeHandler authsigning.SignModeHandler
+	signModeHandler *txsigning.HandlerMap
 }
 
 // Deprecated: NewLegacyEip712SigVerificationDecorator creates a new LegacyEip712SigVerificationDecorator
 func NewLegacyEip712SigVerificationDecorator(
 	ak evmtypes.AccountKeeper,
-	signModeHandler authsigning.SignModeHandler,
+	signModeHandler *txsigning.HandlerMap,
 ) LegacyEip712SigVerificationDecorator {
 	return LegacyEip712SigVerificationDecorator{
 		ak:              ak,

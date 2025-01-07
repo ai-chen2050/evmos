@@ -34,7 +34,7 @@ const (
 	AttoEvmos string = "ahhub"
 
 	// BaseDenomUnit defines the base denomination unit for Evmos.
-	// 1 evmos = 1x10^{BaseDenomUnit} ahhub
+	// 1 hhub = 1x10^{BaseDenomUnit} ahhub
 	BaseDenomUnit = 18
 
 	// DefaultGasPrice is default gas price for evm transactions

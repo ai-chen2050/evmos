@@ -19,10 +19,11 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/libs/log"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/hetu-project/hetu-hub/v1/x/incentives/types"
 )
@@ -35,7 +36,7 @@ type Keeper struct {
 	authority sdk.AccAddress
 
 	accountKeeper   types.AccountKeeper
-	bankKeeper      types.BankKeeper
+	bankKeeper      bankkeeper.Keeper
 	inflationKeeper types.InflationKeeper
 
 	// Currently not used, but added to prevent breaking change s in case we want
@@ -51,7 +52,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	authority sdk.AccAddress,
 	ak types.AccountKeeper,
-	bk types.BankKeeper,
+	bk bankkeeper.Keeper,
 	ik types.InflationKeeper,
 	sk types.StakeKeeper,
 	evmKeeper types.EVMKeeper,

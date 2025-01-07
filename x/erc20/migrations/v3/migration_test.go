@@ -3,11 +3,11 @@ package v3_test
 import (
 	"testing"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	v3 "github.com/hetu-project/hetu-hub/v1/x/erc20/migrations/v3"
 	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
+	v3 "github.com/hetu-project/hetu-hub/v1/x/erc20/migrations/v3"
 
 	v3types "github.com/hetu-project/hetu-hub/v1/x/erc20/migrations/v3/types"
 

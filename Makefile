@@ -375,36 +375,19 @@ format:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-# ------
-# NOTE: Link to the tendermintdev/sdk-proto-gen docker images:
-#       https://hub.docker.com/r/tendermintdev/sdk-proto-gen/tags
-#
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-protoImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
-# ------
-# NOTE: cosmos/proto-builder image is needed because clang-format is not installed
-#       on the tendermintdev/sdk-proto-gen docker image.
-#		Link to the cosmos/proto-builder docker images:
-#       https://github.com/cosmos/cosmos-sdk/pkgs/container/proto-builder
-#
-protoCosmosVer=0.11.2
-protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
-protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
-# ------
-# NOTE: Link to the yoheimuta/protolint docker images:
-#       https://hub.docker.com/r/yoheimuta/protolint/tags
-#
-protolintVer=0.42.2
-protolintName=yoheimuta/protolint:$(protolintVer)
-protolintImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protolintName)
+protoVer=0.14.0
+protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace --user 0 $(protoImageName)
 
+protoLintVer=0.44.0
+protoLinterImage=yoheimuta/protolint
+protoLinter=$(DOCKER) run --rm -v "$(CURDIR):/workspace" --workdir /workspace --user 0 $(protoLinterImage):$(protoLintVer)
 
 # ------
 # NOTE: If you are experiencing problems running these commands, try deleting
 #       the docker images and execute the desired command again.
 #
-proto-all: proto-format proto-lint proto-gen
+proto-all: proto-format proto-lint proto-gen proto-swagger-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
@@ -414,16 +397,16 @@ proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"
 	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
-	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
+	$(protoImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-format:
 	@echo "Formatting Protobuf files"
-	$(protoCosmosImage) find ./ -name *.proto -exec clang-format -i {} \;
+	$(protoImage) find ./ -name *.proto -exec clang-format -i {} \;
 
-# NOTE: The linter configuration lives in .protolint.yaml
 proto-lint:
 	@echo "Linting Protobuf files"
-	$(protolintImage) lint ./proto
+	@$(protoImage) buf lint --error-format=json
+	@$(protoLinter) lint ./proto
 
 proto-check-breaking:
 	@echo "Checking Protobuf files for breaking changes"
@@ -436,10 +419,10 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	git init && \
-	git remote add origin "https://github.com/cosmos/cosmos-sdk.git" && \
+	git remote add origin "https://github.com/evmos/cosmos-sdk.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git pull origin main && \
+	git pull origin "$(DEPS_COSMOS_SDK_VERSION)" && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
@@ -450,7 +433,7 @@ proto-download-deps:
 	git remote add origin "https://github.com/cosmos/ibc-go.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\n" > .git/info/sparse-checkout && \
-	git pull origin main && \
+	git pull origin "$(DEPS_IBC_GO_VERSION)" && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ibc_tmp"
@@ -461,20 +444,20 @@ proto-download-deps:
 	git remote add origin "https://github.com/cosmos/cosmos-proto.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\n" > .git/info/sparse-checkout && \
-	git pull origin main && \
+	git pull origin "$(DEPS_COSMOS_PROTO_VERSION)" && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_proto_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/gogoproto" && \
-	curl -SSL https://raw.githubusercontent.com/cosmos/gogoproto/main/gogoproto/gogo.proto > "$(THIRD_PARTY_DIR)/gogoproto/gogo.proto"
+	curl -SSL "https://raw.githubusercontent.com/cosmos/gogoproto/$(DEPS_COSMOS_GOGOPROTO)/gogoproto/gogo.proto" > "$(THIRD_PARTY_DIR)/gogoproto/gogo.proto"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/google/api" && \
 	curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > "$(THIRD_PARTY_DIR)/google/api/annotations.proto"
 	curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > "$(THIRD_PARTY_DIR)/google/api/http.proto"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos/ics23/v1" && \
-	curl -sSL https://raw.githubusercontent.com/cosmos/ics23/master/proto/cosmos/ics23/v1/proofs.proto > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
+	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/$(DEPS_COSMOS_ICS23)/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
 
 .PHONY: proto-all proto-gen proto-format proto-lint proto-check-breaking proto-swagger-gen

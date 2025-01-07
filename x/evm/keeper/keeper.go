@@ -19,9 +19,11 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	"cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,12 +31,14 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/tendermint/tendermint/libs/log"
 
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/x/evm/statedb"
 	"github.com/hetu-project/hetu-hub/v1/x/evm/types"
 )
+
+// CustomContractFn defines a custom precompiled contract generator with ctx, rules and returns a precompiled contract.
+type CustomContractFn func(sdk.Context, params.Rules) vm.PrecompiledContract
 
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
 type Keeper struct {
@@ -70,7 +74,8 @@ type Keeper struct {
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
 	// Legacy subspace
-	ss paramstypes.Subspace
+	ss                paramstypes.Subspace
+	customContractFns []CustomContractFn
 }
 
 // NewKeeper generates new evm module keeper
@@ -84,6 +89,7 @@ func NewKeeper(
 	fmk types.FeeMarketKeeper,
 	tracer string,
 	ss paramstypes.Subspace,
+	customContractFns []CustomContractFn,
 ) *Keeper {
 	// ensure evm module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -97,16 +103,17 @@ func NewKeeper(
 
 	// NOTE: we pass in the parameter space to the CommitStateDB in order to use custom denominations for the EVM operations
 	return &Keeper{
-		cdc:             cdc,
-		authority:       authority,
-		accountKeeper:   ak,
-		bankKeeper:      bankKeeper,
-		stakingKeeper:   sk,
-		feeMarketKeeper: fmk,
-		storeKey:        storeKey,
-		transientKey:    transientKey,
-		tracer:          tracer,
-		ss:              ss,
+		cdc:               cdc,
+		authority:         authority,
+		accountKeeper:     ak,
+		bankKeeper:        bankKeeper,
+		stakingKeeper:     sk,
+		feeMarketKeeper:   fmk,
+		storeKey:          storeKey,
+		transientKey:      transientKey,
+		tracer:            tracer,
+		ss:                ss,
+		customContractFns: customContractFns,
 	}
 }
 
@@ -352,13 +359,8 @@ func (k Keeper) getBaseFee(ctx sdk.Context, london bool) *big.Int {
 }
 
 // GetMinGasMultiplier returns the MinGasMultiplier param from the fee market module
-func (k Keeper) GetMinGasMultiplier(ctx sdk.Context) sdk.Dec {
-	fmkParmas := k.feeMarketKeeper.GetParams(ctx)
-	if fmkParmas.MinGasMultiplier.IsNil() {
-		// in case we are executing eth_call on a legacy block, returns a zero value.
-		return sdk.ZeroDec()
-	}
-	return fmkParmas.MinGasMultiplier
+func (k Keeper) GetMinGasMultiplier(ctx sdk.Context) math.LegacyDec {
+	return k.feeMarketKeeper.GetParams(ctx).MinGasMultiplier
 }
 
 // ResetTransientGasUsed reset gas used to prepare for execution of current cosmos tx, called in ante handler.

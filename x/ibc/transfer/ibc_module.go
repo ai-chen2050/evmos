@@ -17,8 +17,8 @@
 package transfer
 
 import (
-	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/hetu-project/hetu-hub/v1/x/ibc/transfer/keeper"
 )
 

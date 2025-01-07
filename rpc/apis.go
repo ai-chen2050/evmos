@@ -34,7 +34,7 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/rpc/namespaces/ethereum/web3"
 	"github.com/hetu-project/hetu-hub/v1/types"
 
-	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
+	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 )
 
 // RPC namespaces and API version

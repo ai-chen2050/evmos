@@ -3,7 +3,7 @@ package v2_test
 import (
 	"testing"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	v2 "github.com/hetu-project/hetu-hub/v1/x/inflation/migrations/v2"

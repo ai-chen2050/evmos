@@ -38,9 +38,9 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/tendermint/tendermint/libs/log"
-	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"cosmossdk.io/log"
+	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/hetu-project/hetu-hub/v1/rpc/ethereum/pubsub"
 	rpcfilters "github.com/hetu-project/hetu-hub/v1/rpc/namespaces/ethereum/eth/filters"

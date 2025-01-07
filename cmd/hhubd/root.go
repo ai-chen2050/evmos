@@ -21,17 +21,17 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	"cosmossdk.io/log"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
+	dbm "github.com/cosmos/cosmos-db"
 
+	"cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -40,16 +40,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/simapp/params"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
-	"github.com/cosmos/cosmos-sdk/store"
+
+	// "github.com/cosmos/cosmos-sdk/snapshots"
+	// snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
 
 	evmosclient "github.com/hetu-project/hetu-hub/v1/client"
 	"github.com/hetu-project/hetu-hub/v1/client/debug"
@@ -135,6 +136,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		debug.Cmd(),
 		config.Cmd(),
 		pruning.PruningCmd(a.newApp),
+		snapshot.Cmd(a.newApp),
 	)
 
 	evmosserver.AddCommands(
@@ -256,21 +258,21 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		panic(err)
 	}
 
-	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
-	if err != nil {
-		panic(err)
-	}
+	// snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
+	// snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
-	if err != nil {
-		panic(err)
-	}
+	// snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	snapshotOptions := snapshottypes.NewSnapshotOptions(
-		cast.ToUint64(appOpts.Get(sdkserver.FlagStateSyncSnapshotInterval)),
-		cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent)),
-	)
+	// snapshotOptions := snapshottypes.NewSnapshotOptions(
+	// 	cast.ToUint64(appOpts.Get(sdkserver.FlagStateSyncSnapshotInterval)),
+	// 	cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent)),
+	// )
 
 	evmosApp := app.NewEvmos(
 		logger, db, traceStore, true, skipUpgradeHeights,

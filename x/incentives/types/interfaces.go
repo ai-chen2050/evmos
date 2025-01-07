@@ -17,13 +17,14 @@
 package types
 
 import (
+	context "context"
 	"time"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"cosmossdk.io/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -38,8 +39,8 @@ import (
 // AccountKeeper defines the expected interface needed to retrieve account info.
 type AccountKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
-	GetSequence(sdk.Context, sdk.AccAddress) (uint64, error)
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	GetSequence(context.Context, sdk.AccAddress) (uint64, error)
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.

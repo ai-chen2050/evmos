@@ -16,8 +16,8 @@
 package v4
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v4types "github.com/hetu-project/hetu-hub/v1/x/evm/migrations/v4/types"

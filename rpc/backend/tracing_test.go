@@ -3,6 +3,11 @@ package backend
 import (
 	"fmt"
 
+	tmlog "cosmossdk.io/log"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	"github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -10,11 +15,6 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/indexer"
 	"github.com/hetu-project/hetu-hub/v1/rpc/backend/mocks"
 	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 )
 
 func (suite *BackendTestSuite) TestTraceTransaction() {

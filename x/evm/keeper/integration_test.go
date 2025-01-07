@@ -20,12 +20,12 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/utils"
 	"github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
+	"cosmossdk.io/log"
+	abci "github.com/cometbft/cometbft/abci/types"
+	dbm "github.com/cosmos/cosmos-db"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 )
 
 var _ = Describe("Feemarket", func() {

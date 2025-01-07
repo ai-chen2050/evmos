@@ -26,7 +26,7 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/crypto/hd"
 	"github.com/hetu-project/hetu-hub/v1/types"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"

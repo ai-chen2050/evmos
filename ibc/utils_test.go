@@ -3,14 +3,13 @@ package ibc
 import (
 	"testing"
 
-	"github.com/hetu-project/hetu-hub/v1/x/claims/types"
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	teststypes "github.com/hetu-project/hetu-hub/v1/types/tests"
 )
 
@@ -199,20 +198,6 @@ func TestGetTransferAmount(t *testing.T) {
 				),
 			},
 			"10000",
-			false,
-		},
-		{
-			"valid - IBCTriggerAmt",
-			channeltypes.Packet{
-				Data: transfertypes.ModuleCdc.MustMarshalJSON(
-					&transfertypes.FungibleTokenPacketData{
-						Sender:   "cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
-						Receiver: "hhub1x2w87cvt5mqjncav4lxy8yfreynn273xyw6ylm",
-						Amount:   types.IBCTriggerAmt,
-					},
-				),
-			},
-			types.IBCTriggerAmt,
 			false,
 		},
 	}

@@ -18,15 +18,16 @@ package ante
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
+	txsigning "cosmossdk.io/x/tx/signing"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
-	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	anteutils "github.com/hetu-project/hetu-hub/v1/app/ante/utils"
 
 	cosmosante "github.com/hetu-project/hetu-hub/v1/app/ante/cosmos"
@@ -50,8 +51,8 @@ type HandlerOptions struct {
 	EvmKeeper              evmante.EVMKeeper
 	FeegrantKeeper         ante.FeegrantKeeper
 	ExtensionOptionChecker ante.ExtensionOptionChecker
-	SignModeHandler        authsigning.SignModeHandler
-	SigGasConsumer         func(meter sdk.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
+	SignModeHandler        *txsigning.HandlerMap
+	SigGasConsumer         func(meter storetypes.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
 	MaxTxGasWanted         uint64
 	TxFeeChecker           anteutils.TxFeeChecker
 }

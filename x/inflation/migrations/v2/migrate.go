@@ -17,8 +17,8 @@
 package v2
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v2types "github.com/hetu-project/hetu-hub/v1/x/inflation/migrations/v2/types"
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"

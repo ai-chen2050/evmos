@@ -19,10 +19,11 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/libs/log"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/hetu-project/hetu-hub/v1/x/erc20/types"
 )
@@ -35,10 +36,9 @@ type Keeper struct {
 	authority sdk.AccAddress
 
 	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	bankKeeper    bankkeeper.Keeper
 	evmKeeper     types.EVMKeeper
 	stakingKeeper types.StakingKeeper
-	claimsKeeper  types.ClaimsKeeper
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
@@ -47,10 +47,9 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	authority sdk.AccAddress,
 	ak types.AccountKeeper,
-	bk types.BankKeeper,
+	bk bankkeeper.Keeper,
 	evmKeeper types.EVMKeeper,
 	sk types.StakingKeeper,
-	ck types.ClaimsKeeper,
 ) Keeper {
 	// ensure gov module account is set and is not nil
 	if err := sdk.VerifyAddressFormat(authority); err != nil {
@@ -65,7 +64,6 @@ func NewKeeper(
 		bankKeeper:    bk,
 		evmKeeper:     evmKeeper,
 		stakingKeeper: sk,
-		claimsKeeper:  ck,
 	}
 }
 

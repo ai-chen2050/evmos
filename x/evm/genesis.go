@@ -19,11 +19,11 @@ import (
 	"bytes"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/x/evm/keeper"

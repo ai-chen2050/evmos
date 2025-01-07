@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	feemarkettypes "github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	simapp "github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/x/epochs"

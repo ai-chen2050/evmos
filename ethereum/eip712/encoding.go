@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/simapp/params"
+	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

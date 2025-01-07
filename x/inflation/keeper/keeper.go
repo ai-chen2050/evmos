@@ -17,10 +17,10 @@
 package keeper
 
 import (
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 )

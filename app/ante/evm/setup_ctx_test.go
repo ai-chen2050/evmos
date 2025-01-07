@@ -6,7 +6,7 @@ import (
 	evmante "github.com/hetu-project/hetu-hub/v1/app/ante/evm"
 	"github.com/hetu-project/hetu-hub/v1/testutil"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testutiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
 	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"

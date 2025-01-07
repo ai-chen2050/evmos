@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	rand "github.com/tendermint/tendermint/libs/rand"
+	rand "github.com/cometbft/cometbft/libs/rand"
 
 	"github.com/hetu-project/hetu-hub/v1/ethereum/eip712"
 	"github.com/tidwall/gjson"
