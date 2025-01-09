@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -141,7 +142,7 @@ func (dfd DeductFeeDecorator) deductFee(ctx sdk.Context, sdkTx sdk.Tx, fees sdk.
 	}
 
 	// deduct the fees
-	if err := deductFeesFromBalanceOrUnclaimedStakingRewards(ctx, dfd, deductFeesFromAcc, fees); err != nil {
+	if err := deductFeesFromBalance(ctx, dfd, deductFeesFromAcc, fees); err != nil {
 		return fmt.Errorf("insufficient funds and failed to claim sufficient staking rewards to pay for fees: %w", err)
 	}
 
@@ -157,17 +158,11 @@ func (dfd DeductFeeDecorator) deductFee(ctx sdk.Context, sdkTx sdk.Tx, fees sdk.
 	return nil
 }
 
-// deductFeesFromBalanceOrUnclaimedStakingRewards tries to deduct the fees from the account balance.
+// deductFeesFromBalance tries to deduct the fees from the account balance.
 // If the account balance is not enough, it tries to claim enough staking rewards to cover the fees.
-func deductFeesFromBalanceOrUnclaimedStakingRewards(
-	ctx sdk.Context, dfd DeductFeeDecorator, deductFeesFromAcc authtypes.AccountI, fees sdk.Coins,
+func deductFeesFromBalance(
+	ctx sdk.Context, dfd DeductFeeDecorator, deductFeesFromAcc sdk.AccountI, fees sdk.Coins,
 ) error {
-	if err := anteutils.ClaimStakingRewardsIfNecessary(
-		ctx, dfd.bankKeeper, dfd.distributionKeeper, dfd.stakingKeeper, deductFeesFromAcc.GetAddress(), fees,
-	); err != nil {
-		return err
-	}
-
 	return authante.DeductFees(dfd.bankKeeper, ctx, deductFeesFromAcc, fees)
 }
 
@@ -202,7 +197,7 @@ func checkFeeCoinsAgainstMinGasPrices(ctx sdk.Context, feeCoins sdk.Coins, gas u
 
 	// Determine the required fees by multiplying each required minimum gas
 	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	glDec := sdk.NewDec(int64(gas)) //#nosec G701 -- gosec warning about integer overflow is not relevant here
+	glDec := sdkmath.LegacyNewDec(int64(gas)) //#nosec G701 -- gosec warning about integer overflow is not relevant here
 	for i, gp := range minGasPrices {
 		fee := gp.Amount.Mul(glDec)
 		requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())

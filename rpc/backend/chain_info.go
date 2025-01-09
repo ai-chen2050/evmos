@@ -20,16 +20,20 @@ import (
 	"math/big"
 	"strconv"
 
+	"cosmossdk.io/math"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	ethmath "github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	rpctypes "github.com/hetu-project/hetu-hub/v1/rpc/types"
 	"github.com/hetu-project/hetu-hub/v1/types"
 	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
 	feemarkettypes "github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
+	"github.com/pkg/errors"
 )
 
 // ChainID is the EIP-155 replay-protection chain id for the current ethereum chain config.
@@ -63,10 +67,10 @@ func (b *Backend) ChainConfig() *params.ChainConfig {
 }
 
 // GlobalMinGasPrice returns MinGasPrice param from FeeMarket
-func (b *Backend) GlobalMinGasPrice() (sdk.Dec, error) {
+func (b *Backend) GlobalMinGasPrice() (math.LegacyDec, error) {
 	res, err := b.queryClient.FeeMarket.Params(b.ctx, &feemarkettypes.QueryParamsRequest{})
 	if err != nil {
-		return sdk.ZeroDec(), err
+		return math.LegacyZeroDec(), err
 	}
 	return res.Params.MinGasPrice, nil
 }
@@ -82,8 +86,8 @@ func (b *Backend) BaseFee(blockRes *tmrpctypes.ResultBlockResults) (*big.Int, er
 		// we can't tell if it's london HF not enabled or the state is pruned,
 		// in either case, we'll fallback to parsing from begin blocker event,
 		// faster to iterate reversely
-		for i := len(blockRes.BeginBlockEvents) - 1; i >= 0; i-- {
-			evt := blockRes.BeginBlockEvents[i]
+		for i := len(blockRes.FinalizeBlockEvents) - 1; i >= 0; i-- {
+			evt := blockRes.FinalizeBlockEvents[i]
 			if evt.Type == feemarkettypes.EventTypeFeeMarket && len(evt.Attributes) > 0 {
 				baseFee, err := strconv.ParseInt(string(evt.Attributes[0].Value), 10, 64)
 				if err == nil {
@@ -111,7 +115,11 @@ func (b *Backend) CurrentHeader() *ethtypes.Header {
 // PendingTransactions returns the transactions that are in the transaction pool
 // and have a from address that is one of the accounts this node manages.
 func (b *Backend) PendingTransactions() ([]*sdk.Tx, error) {
-	res, err := b.clientCtx.Client.UnconfirmedTxs(b.ctx, nil)
+	mc, ok := b.clientCtx.Client.(cmtrpcclient.MempoolClient)
+	if !ok {
+		return nil, errors.New("invalid rpc client")
+	}
+	res, err := mc.UnconfirmedTxs(b.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +163,7 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 
 // FeeHistory returns data relevant for fee estimation based on the specified range of blocks.
 func (b *Backend) FeeHistory(
-	userBlockCount rpc.DecimalOrHex, // number blocks to fetch, maximum is 100
+	userBlockCount ethmath.HexOrDecimal64, // number blocks to fetch, maximum is 100
 	lastBlock rpc.BlockNumber, // the block to start search , to oldest
 	rewardPercentiles []float64, // percentiles to fetch reward
 ) (*rpctypes.FeeHistoryResult, error) {

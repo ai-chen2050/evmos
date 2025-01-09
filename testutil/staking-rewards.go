@@ -20,17 +20,18 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	teststaking "github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/hetu-project/hetu-hub/v1/app"
 	testutiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
 	"github.com/hetu-project/hetu-hub/v1/utils"
+	"github.com/stretchr/testify/require"
 )
 
 // PrepareAccountsForDelegationRewards prepares the test suite for testing to withdraw delegation rewards.
@@ -51,7 +52,7 @@ import (
 func PrepareAccountsForDelegationRewards(t *testing.T, ctx sdk.Context, app *app.Evmos, addr sdk.AccAddress, balance sdkmath.Int, rewards ...sdkmath.Int) (sdk.Context, error) {
 	// Calculate the necessary amount of tokens to fund the account in order for the desired residual balance to
 	// be left after creating validators and delegating to them.
-	totalRewards := sdk.ZeroInt()
+	totalRewards := math.ZeroInt()
 	for _, reward := range rewards {
 		totalRewards = totalRewards.Add(reward)
 	}
@@ -96,8 +97,11 @@ func PrepareAccountsForDelegationRewards(t *testing.T, ctx sdk.Context, app *app
 			return sdk.Context{}, fmt.Errorf("failed to fund validator account: %s", err.Error())
 		}
 
-		zeroDec := sdk.ZeroDec()
-		stakingParams := app.StakingKeeper.GetParams(ctx)
+		zeroDec := math.LegacyZeroDec()
+		stakingParams, err := app.StakingKeeper.GetParams(ctx)
+		if err != nil {
+			return sdk.Context{}, fmt.Errorf("failed to get staking params: %s", err.Error())
+		}
 		stakingParams.BondDenom = utils.BaseDenom
 		stakingParams.MinCommissionRate = zeroDec
 		app.StakingKeeper.SetParams(ctx, stakingParams)
@@ -114,11 +118,15 @@ func PrepareAccountsForDelegationRewards(t *testing.T, ctx sdk.Context, app *app
 
 		// end block to bond validator and increase block height
 		// Not using Commit() here because code panics due to invalid block height
-		staking.EndBlocker(ctx, app.StakingKeeper)
+		_, err = app.StakingKeeper.EndBlocker(ctx)
+		require.NoError(t, err)
 
 		// allocate rewards to validator (of these 50% will be paid out to the delegator)
-		validator := app.StakingKeeper.Validator(ctx, valAddr)
-		allocatedRewards := sdk.NewDecCoins(sdk.NewDecCoin(utils.BaseDenom, reward.Mul(sdk.NewInt(2))))
+		validator, err := app.StakingKeeper.Validator(ctx, valAddr)
+		if err != nil {
+			return sdk.Context{}, fmt.Errorf("failed to get validator: %s", err.Error())
+		}
+		allocatedRewards := sdk.NewDecCoins(sdk.NewDecCoin(utils.BaseDenom, reward.Mul(math.NewInt(2))))
 		app.DistrKeeper.AllocateTokensToValidator(ctx, validator, allocatedRewards)
 	}
 
@@ -128,7 +136,8 @@ func PrepareAccountsForDelegationRewards(t *testing.T, ctx sdk.Context, app *app
 // GetTotalDelegationRewards returns the total delegation rewards that are currently
 // outstanding for the given address.
 func GetTotalDelegationRewards(ctx sdk.Context, distributionKeeper distributionkeeper.Keeper, addr sdk.AccAddress) (sdk.DecCoins, error) {
-	resp, err := distributionKeeper.DelegationTotalRewards(
+	querier := distributionkeeper.NewQuerier(distributionKeeper)
+	resp, err := querier.DelegationTotalRewards(
 		ctx,
 		&distributiontypes.QueryDelegationTotalRewardsRequest{
 			DelegatorAddress: addr.String(),

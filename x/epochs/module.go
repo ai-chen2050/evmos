@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -30,6 +29,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -44,6 +44,9 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasABCIGenesis = AppModule{}
+
+	_ appmodule.HasBeginBlocker = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -130,23 +133,8 @@ func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-// NewHandler returns nil inflation module doesn't expose tx gRPC endpoints
-func (am AppModule) NewHandler() sdk.Handler {
-	return nil
-}
-
-// Route returns the epochs module's message routing key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, am.NewHandler())
-}
-
 // QuerierRoute returns the epochs module's query routing key.
 func (AppModule) QuerierRoute() string { return "" }
-
-// LegacyQuerierHandler returns the epochs module's Querier.
-func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
-	return nil
-}
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
@@ -175,13 +163,14 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the epochs module.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	am.keeper.BeginBlocker(ctx)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	c := sdk.UnwrapSDKContext(ctx)
+	return am.keeper.BeginBlocker(c)
 }
 
 // EndBlock executes all ABCI EndBlock logic respective to the epochs module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(_ sdk.Context) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
@@ -192,18 +181,8 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 // GenerateGenesisState creates a randomized GenState of theepochs module.
 func (AppModule) GenerateGenesisState(_ *module.SimulationState) {}
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return []simtypes.WeightedProposalContent{}
-}
-
-// RandomizedParams creates randomizedepochs param changes for the simulator.
-func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{}
-}
-
 // RegisterStoreDecoder registers a decoder for supply module's types
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
 }
 
 // WeightedOperations returns the all the gov module operations with their respective weights.

@@ -20,7 +20,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/armon/go-metrics"
+	"github.com/hashicorp/go-metrics"
 	"github.com/ethereum/go-ethereum/common"
 
 	storetypes "cosmossdk.io/store/types"

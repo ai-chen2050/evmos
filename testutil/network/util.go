@@ -17,11 +17,13 @@
 package network
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
-	"time"
 
+	"cosmossdk.io/log"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
@@ -31,10 +33,12 @@ import (
 	"github.com/cometbft/cometbft/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/cosmos/cosmos-sdk/server/api"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
-	srvtypes "github.com/cosmos/cosmos-sdk/server/types"
+	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -65,16 +69,17 @@ func startInProcess(cfg Config, val *Validator) error {
 
 	app := cfg.AppConstructor(*val)
 
-	genDocProvider := node.DefaultGenesisDocProviderFunc(tmCfg)
+	genDocProvider := server.GenDocProvider(tmCfg)
+	cmtApp := sdkserver.NewCometABCIWrapper(app)
 	tmNode, err := node.NewNode(
 		tmCfg,
 		pvm.LoadOrGenFilePV(tmCfg.PrivValidatorKeyFile(), tmCfg.PrivValidatorStateFile()),
 		nodeKey,
-		proxy.NewLocalClientCreator(app),
+		proxy.NewLocalClientCreator(cmtApp),
 		genDocProvider,
-		node.DefaultDBProvider,
+		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(tmCfg.Instrumentation),
-		logger.With("module", val.Moniker),
+		servercmtlog.CometLoggerWrapper{Logger: logger.With("module", val.Moniker)},
 	)
 	if err != nil {
 		return err
@@ -100,43 +105,37 @@ func startInProcess(cfg Config, val *Validator) error {
 
 		// Add the tendermint queries service in the gRPC router.
 		app.RegisterTendermintService(val.ClientCtx)
+		app.RegisterNodeService(val.ClientCtx, val.AppConfig.Config)
 	}
 
+	ctx := context.Background()
+	ctx, val.cancelFn = context.WithCancel(ctx)
+	val.errGroup, ctx = errgroup.WithContext(ctx)
+
 	if val.AppConfig.API.Enable && val.APIAddress != "" {
-		apiSrv := api.New(val.ClientCtx, logger.With("module", "api-server"))
+		apiSrv := api.New(val.ClientCtx, logger.With("module", "api-server"), val.grpc)
 		app.RegisterAPIRoutes(apiSrv, val.AppConfig.API)
 
-		errCh := make(chan error)
-
-		go func() {
-			if err := apiSrv.Start(val.AppConfig.Config); err != nil {
-				errCh <- err
-			}
-		}()
-
-		select {
-		case err := <-errCh:
-			return err
-		case <-time.After(srvtypes.ServerStartTime): // assume server started successfully
-		}
+		val.errGroup.Go(func() error {
+			return apiSrv.Start(ctx, val.AppConfig.Config)
+		})
 
 		val.api = apiSrv
 	}
 
 	if val.AppConfig.GRPC.Enable {
-		grpcSrv, err := servergrpc.StartGRPCServer(val.ClientCtx, app, val.AppConfig.GRPC)
+		grpcSrv, err := servergrpc.NewGRPCServer(val.ClientCtx, app, val.AppConfig.GRPC)
 		if err != nil {
 			return err
 		}
 
-		val.grpc = grpcSrv
+		// Start the gRPC server in a goroutine. Note, the provided ctx will ensure
+		// that the server is gracefully shut down.
+		val.errGroup.Go(func() error {
+			return servergrpc.StartGRPCServer(ctx, logger.With(log.ModuleKey, "grpc-server"), val.AppConfig.GRPC, grpcSrv)
+		})
 
-		if val.AppConfig.GRPCWeb.Enable {
-			val.grpcWeb, err = servergrpc.StartGRPCWeb(grpcSrv, val.AppConfig.Config)
-			if err != nil {
-				return err
-			}
-		}
+		val.grpc = grpcSrv
 	}
 
 	if val.AppConfig.JSONRPC.Enable && val.AppConfig.JSONRPC.Address != "" {
@@ -178,13 +177,16 @@ func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
 		initCfg := genutiltypes.NewInitConfig(cfg.ChainID, gentxsDir, vals[i].NodeID, vals[i].PubKey)
 
 		genFile := tmCfg.GenesisFile()
-		genDoc, err := types.GenesisDocFromFile(genFile)
+		genDoc, err := genutiltypes.AppGenesisFromFile(genFile)
 		if err != nil {
 			return err
 		}
 
 		appState, err := genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig,
-			tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{})
+			tmCfg, initCfg, genDoc, banktypes.GenesisBalancesIterator{},
+			genutiltypes.DefaultMessageValidator,
+			cfg.TxConfig.SigningContext().ValidatorAddressCodec(),
+		)
 		if err != nil {
 			return err
 		}

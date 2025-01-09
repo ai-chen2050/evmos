@@ -8,7 +8,6 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	chainparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/hetu-project/hetu-hub/v1/ethereum/eip712"
@@ -23,9 +22,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/cmd/config"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
+	hhubtypes "github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/utils"
 
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -45,7 +44,7 @@ const (
 type EIP712TestSuite struct {
 	suite.Suite
 
-	config                   chainparams.EncodingConfig
+	config                   hhubtypes.EncodingConfig
 	clientCtx                client.Context
 	useLegacyEIP712TypedData bool
 	denom                    string
@@ -69,7 +68,7 @@ func TestEIP712TestSuite(t *testing.T) {
 }
 
 func (suite *EIP712TestSuite) SetupTest() {
-	suite.config = encoding.MakeConfig(app.ModuleBasics)
+	suite.config = encoding.MakeConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(suite.config.TxConfig)
 	suite.denom = utils.BaseDenom
 
@@ -163,8 +162,8 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Standard MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
-					suite.createTestAddress(),
-					sdk.ValAddress(suite.createTestAddress()),
+					suite.createTestAddress().String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 					suite.makeCoins(suite.denom, math.NewInt(1))[0],
 				),
 			},
@@ -174,8 +173,8 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Standard MsgWithdrawDelegationReward",
 			msgs: []sdk.Msg{
 				distributiontypes.NewMsgWithdrawDelegatorReward(
-					suite.createTestAddress(),
-					sdk.ValAddress(suite.createTestAddress()),
+					suite.createTestAddress().String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 				),
 			},
 			expectSuccess: true,
@@ -184,13 +183,13 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Two Single-Signer MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
-					params.address,
-					sdk.ValAddress(suite.createTestAddress()),
+					params.address.String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 					suite.makeCoins(suite.denom, math.NewInt(1))[0],
 				),
 				stakingtypes.NewMsgDelegate(
-					params.address,
-					sdk.ValAddress(suite.createTestAddress()),
+					params.address.String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 					suite.makeCoins(suite.denom, math.NewInt(5))[0],
 				),
 			},
@@ -290,8 +289,8 @@ func (suite *EIP712TestSuite) TestEIP712() {
 		{
 			title: "Fails - Single Message / Multi-Signer",
 			msgs: []sdk.Msg{
-				banktypes.NewMsgMultiSend(
-					[]banktypes.Input{
+				&banktypes.MsgMultiSend{
+					Inputs: []banktypes.Input{
 						banktypes.NewInput(
 							suite.createTestAddress(),
 							suite.makeCoins(suite.denom, math.NewInt(50)),
@@ -301,7 +300,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 							suite.makeCoins(suite.denom, math.NewInt(50)),
 						),
 					},
-					[]banktypes.Output{
+					Outputs: []banktypes.Output{
 						banktypes.NewOutput(
 							suite.createTestAddress(),
 							suite.makeCoins(suite.denom, math.NewInt(50)),
@@ -311,7 +310,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 							suite.makeCoins(suite.denom, math.NewInt(50)),
 						),
 					},
-				),
+				},
 			},
 			expectSuccess: false,
 		},
@@ -363,7 +362,9 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					Address:       sdk.MustBech32ifyAddressBytes(config.Bech32Prefix, pubKey.Bytes()),
 				}
 
-				bz, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+				bz, err := authsigning.GetSignBytesAdapter(
+					suite.clientCtx.CmdContext,
+					suite.clientCtx.TxConfig.SignModeHandler(),
 					signMode,
 					signerData,
 					txBuilder.GetTx(),

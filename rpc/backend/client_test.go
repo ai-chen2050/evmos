@@ -181,12 +181,12 @@ func TestRegisterConsensusParams(t *testing.T) {
 func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrpctypes.ResultBlockResults, error) {
 	res := &tmrpctypes.ResultBlockResults{
 		Height: height,
-		TxsResults: []*abci.ResponseDeliverTx{
+		TxsResults: []*abci.ExecTxResult{
 			{Code: 0, GasUsed: 0, Events: []abci.Event{{
 				Type: evmtypes.EventTypeTxLog,
 				Attributes: []abci.EventAttribute{{
-					Key:   []byte(evmtypes.AttributeKeyTxLog),
-					Value: []byte{0x7b, 0x22, 0x74, 0x65, 0x73, 0x74, 0x22, 0x3a, 0x20, 0x22, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x22, 0x7d}, // Represents {"test": "hello"}
+					Key:   evmtypes.AttributeKeyTxLog,
+					Value: "{\"test\": \"hello\"}", // TODO refactor the value to unmarshall to a evmtypes.Log struct successfully
 					Index: true,
 				}},
 			}}},
@@ -203,7 +203,7 @@ func RegisterBlockResults(
 ) (*tmrpctypes.ResultBlockResults, error) {
 	res := &tmrpctypes.ResultBlockResults{
 		Height:     height,
-		TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+		TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 	}
 
 	client.On("BlockResults", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).
@@ -225,7 +225,7 @@ func TestRegisterBlockResults(t *testing.T) {
 	res, err := client.BlockResults(rpc.ContextWithHeight(height), &height)
 	expRes := &tmrpctypes.ResultBlockResults{
 		Height:     height,
-		TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+		TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 	}
 	require.Equal(t, expRes, res)
 	require.NoError(t, err)

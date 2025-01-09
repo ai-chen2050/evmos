@@ -21,7 +21,7 @@ message Params {
   // developer_shares defines the proportion of the transaction fees to be
   // distributed to the registered contract owner
   string developer_shares = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+      [(gogoproto.customtype) = "cosmossdk.io/math.LegacyDec", (gogoproto.nullable) = false];
   // addr_derivation_cost_create defines the cost of address derivation for
   // verifying the contract deployer at fee registration
   uint64 addr_derivation_cost_create = 3;

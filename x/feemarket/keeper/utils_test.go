@@ -7,15 +7,16 @@ import (
 
 	"github.com/hetu-project/hetu-hub/v1/utils"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -54,7 +55,7 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 		1, time.Now().UTC(), "evmos_9000-1", suite.consAddress, nil, nil,
 	)
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, header)
+	suite.ctx = suite.app.BaseApp.NewContextLegacy(checkTx, header)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
@@ -68,10 +69,10 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
 	require.NoError(t, err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
-	err = suite.app.StakingKeeper.AfterValidatorCreated(suite.ctx, validator.GetOperator())
+	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, sdk.ValAddress(validator.GetOperator()))
 	require.NoError(t, err)
 
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
@@ -82,7 +83,7 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 	stakingParams.BondDenom = utils.BaseDenom
 	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := encoding.MakeConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Codec
@@ -106,7 +107,7 @@ func (suite *KeeperTestSuite) CommitAfter(t time.Duration) {
 
 // setupTestWithContext sets up a test chain with an example Cosmos send msg,
 // given a local (validator config) and a global (feemarket param) minGasPrice
-func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
+func setupTestWithContext(valMinGasPrice string, minGasPrice math.LegacyDec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
 	params := types.DefaultParams()
 	params.MinGasPrice = minGasPrice
@@ -155,8 +156,8 @@ func setupChain(localMinGasPricesStr string) {
 		map[int64]bool{},
 		app.DefaultNodeHome,
 		5,
-		encoding.MakeConfig(app.ModuleBasics),
-		simapp.EmptyAppOptions{},
+		encoding.MakeConfig(),
+		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
 		baseapp.SetMinGasPrices(localMinGasPricesStr),
 	)
 
@@ -168,7 +169,7 @@ func setupChain(localMinGasPricesStr string) {
 
 	// Initialize the chain
 	newapp.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			ChainId:         "evmos_9000-1",
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,

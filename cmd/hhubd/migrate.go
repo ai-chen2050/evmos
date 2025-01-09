@@ -86,8 +86,11 @@ func MigrateGenesisCmd() *cobra.Command {
 				return fmt.Errorf("unknown migration function for version: %s", target)
 			}
 
-			newGenState := migrationFn(initialState, clientCtx)
-
+			newGenState, err := migrationFn(initialState, clientCtx)
+			if err != nil {
+				return fmt.Errorf("failed to when running migration function: %w", err)
+			}
+			
 			appState, err := json.Marshal(newGenState)
 			if err != nil {
 				return fmt.Errorf("failed to JSON marshal migrated genesis state: %w", err)

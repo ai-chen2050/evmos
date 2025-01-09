@@ -6,6 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	ethante "github.com/hetu-project/hetu-hub/v1/app/ante/evm"
 	"github.com/hetu-project/hetu-hub/v1/server/config"
 	"github.com/hetu-project/hetu-hub/v1/testutil"
@@ -323,7 +325,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			0,
 			func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e6))
-				return ctx.WithBlockGasMeter(sdk.NewGasMeter(1))
+				return ctx.WithBlockGasMeter(storetypes.NewGasMeter(1))
 			},
 			false, true,
 			0,
@@ -335,7 +337,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx2GasLimit, // it's capped
 			func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e16))
-				return ctx.WithBlockGasMeter(sdk.NewGasMeter(1e19))
+				return ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e19))
 			},
 			true, false,
 			tx2Priority,
@@ -347,7 +349,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx2GasLimit, // it's capped
 			func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e16))
-				return ctx.WithBlockGasMeter(sdk.NewGasMeter(1e19))
+				return ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e19))
 			},
 			true, false,
 			dynamicFeeTxPriority,
@@ -371,11 +373,11 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx2GasLimit, // it's capped
 			func(ctx sdk.Context) sdk.Context {
 				ctx, err := testutil.PrepareAccountsForDelegationRewards(
-					suite.T(), ctx, suite.app, sdk.AccAddress(addr.Bytes()), sdk.ZeroInt(), sdk.NewInt(1e16),
+					suite.T(), ctx, suite.app, sdk.AccAddress(addr.Bytes()), sdkmath.ZeroInt(), sdkmath.NewInt(1e16),
 				)
 				suite.Require().NoError(err, "error while preparing accounts for delegation rewards")
 				return ctx.
-					WithBlockGasMeter(sdk.NewGasMeter(1e19)).
+					WithBlockGasMeter(storetypes.NewGasMeter(1e19)).
 					WithBlockHeight(ctx.BlockHeight() + 1)
 			},
 			true, false,
@@ -398,11 +400,11 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx2GasLimit, // it's capped
 			func(ctx sdk.Context) sdk.Context {
 				ctx, err := testutil.PrepareAccountsForDelegationRewards(
-					suite.T(), ctx, suite.app, sdk.AccAddress(addr.Bytes()), sdk.NewInt(1e16), sdk.NewInt(1e16),
+					suite.T(), ctx, suite.app, sdk.AccAddress(addr.Bytes()), sdkmath.NewInt(1e16), sdkmath.NewInt(1e16),
 				)
 				suite.Require().NoError(err, "error while preparing accounts for delegation rewards")
 				return ctx.
-					WithBlockGasMeter(sdk.NewGasMeter(1e19)).
+					WithBlockGasMeter(storetypes.NewGasMeter(1e19)).
 					WithBlockHeight(ctx.BlockHeight() + 1)
 			},
 			true, false,
@@ -410,7 +412,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			func(ctx sdk.Context) {
 				balance := suite.app.BankKeeper.GetBalance(ctx, sdk.AccAddress(addr.Bytes()), utils.BaseDenom)
 				suite.Require().True(
-					balance.Amount.LT(sdk.NewInt(1e16)),
+					balance.Amount.LT(sdkmath.NewInt(1e16)),
 					"the fees are paid using the available balance, so it should be lower than the initial balance",
 				)
 
@@ -420,7 +422,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 				// NOTE: the total rewards should be the same as after the setup, since
 				// the fees are paid using the account balance
 				suite.Require().Equal(
-					sdk.NewDecCoins(sdk.NewDecCoin(utils.BaseDenom, sdk.NewInt(1e16))),
+					sdk.NewDecCoins(sdk.NewDecCoin(utils.BaseDenom, sdkmath.NewInt(1e16))),
 					rewards,
 					"the total rewards should be the same as after the setup, since the fees are paid using the account balance",
 				)
@@ -438,12 +440,12 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 
 			if tc.expPanic {
 				suite.Require().Panics(func() {
-					_, _ = dec.AnteHandle(cacheCtx.WithIsCheckTx(true).WithGasMeter(sdk.NewGasMeter(1)), tc.tx, false, testutil.NextFn)
+					_, _ = dec.AnteHandle(cacheCtx.WithIsCheckTx(true).WithGasMeter(storetypes.NewGasMeter(1)), tc.tx, false, testutil.NextFn)
 				})
 				return
 			}
 
-			ctx, err := dec.AnteHandle(cacheCtx.WithIsCheckTx(true).WithGasMeter(sdk.NewInfiniteGasMeter()), tc.tx, false, testutil.NextFn)
+			ctx, err := dec.AnteHandle(cacheCtx.WithIsCheckTx(true).WithGasMeter(storetypes.NewInfiniteGasMeter()), tc.tx, false, testutil.NextFn)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(tc.expPriority, ctx.Priority())

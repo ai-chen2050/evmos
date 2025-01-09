@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
 	gethaccounts "github.com/ethereum/go-ethereum/accounts"
@@ -113,7 +114,7 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 		[]sdk.Coin{
 			{
 				Denom:  "atom",
-				Amount: sdk.NewIntFromUint64(150),
+				Amount: math.NewIntFromUint64(150),
 			},
 		},
 	)

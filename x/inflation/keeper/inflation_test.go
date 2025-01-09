@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,19 +24,19 @@ func (suite *KeeperTestSuite) TestMintAndAllocateInflation() {
 	}{
 		{
 			"pass",
-			sdk.NewCoin(denomMint, sdk.NewInt(1_000_000)),
+			sdk.NewCoin(denomMint, math.NewInt(1_000_000)),
 			func() {},
-			sdk.NewCoin(denomMint, sdk.NewInt(533_333)),
-			sdk.NewCoin(denomMint, sdk.NewInt(333_333)),
-			sdk.NewDecCoins(sdk.NewDecCoin(denomMint, sdk.NewInt(133_334))),
+			sdk.NewCoin(denomMint, math.NewInt(533_333)),
+			sdk.NewCoin(denomMint, math.NewInt(333_333)),
+			sdk.NewDecCoins(sdk.NewDecCoin(denomMint, math.NewInt(133_334))),
 			true,
 		},
 		{
 			"pass - no coins minted ",
-			sdk.NewCoin(denomMint, sdk.ZeroInt()),
+			sdk.NewCoin(denomMint, math.ZeroInt()),
 			func() {},
-			sdk.NewCoin(denomMint, sdk.ZeroInt()),
-			sdk.NewCoin(denomMint, sdk.ZeroInt()),
+			sdk.NewCoin(denomMint, math.ZeroInt()),
+			sdk.NewCoin(denomMint, math.ZeroInt()),
 			sdk.DecCoins(nil),
 			true,
 		},
@@ -93,7 +94,7 @@ func (suite *KeeperTestSuite) TestGetCirculatingSupplyAndInflationRate() {
 		name             string
 		bankSupply       sdkmath.Int
 		malleate         func()
-		expInflationRate sdk.Dec
+		expInflationRate math.LegacyDec
 	}{
 		{
 			"no epochs per period",
@@ -101,7 +102,7 @@ func (suite *KeeperTestSuite) TestGetCirculatingSupplyAndInflationRate() {
 			func() {
 				suite.app.InflationKeeper.SetEpochsPerPeriod(suite.ctx, 0)
 			},
-			sdk.ZeroDec(),
+			math.LegacyZeroDec(),
 		},
 		{
 			"high supply",
@@ -119,7 +120,7 @@ func (suite *KeeperTestSuite) TestGetCirculatingSupplyAndInflationRate() {
 			"zero circulating supply",
 			sdk.TokensFromConsensusPower(200_000_000, evmostypes.PowerReduction).Sub(bondedAmt),
 			func() {},
-			sdk.ZeroDec(),
+			math.LegacyZeroDec(),
 		},
 	}
 	for _, tc := range testCases {
@@ -158,13 +159,13 @@ func (suite *KeeperTestSuite) TestBondedRatio() {
 		name         string
 		isMainnet    bool
 		malleate     func()
-		expBondRatio sdk.Dec
+		expBondRatio math.LegacyDec
 	}{
 		{
 			"is mainnet",
 			true,
 			func() {},
-			sdk.ZeroDec(),
+			math.LegacyZeroDec(),
 		},
 		{
 			"not mainnet",

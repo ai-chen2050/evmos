@@ -19,14 +19,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
 
 	apitypes "github.com/ethereum/go-ethereum/signer/core/apitypes"
-	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
+	hhubtypes "github.com/hetu-project/hetu-hub/v1/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 )
@@ -40,7 +39,7 @@ var (
 // The process of unmarshaling SignDoc bytes into a SignDoc object requires having a codec
 // populated with all relevant message types. As a result, we must call this method on app
 // initialization with the app's encoding config.
-func SetEncodingConfig(cfg params.EncodingConfig) {
+func SetEncodingConfig(cfg hhubtypes.EncodingConfig) {
 	aminoCodec = cfg.Amino
 	protoCodec = codec.NewProtoCodec(cfg.InterfaceRegistry)
 }
@@ -116,7 +115,7 @@ func decodeAminoSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 		return apitypes.TypedData{}, err
 	}
 
-	chainID, err := evmostypes.ParseChainID(aminoDoc.ChainID)
+	chainID, err := hhubtypes.ParseChainID(aminoDoc.ChainID)
 	if err != nil {
 		return apitypes.TypedData{}, errors.New("invalid chain ID passed as argument")
 	}
@@ -180,7 +179,7 @@ func decodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 
 	signerInfo := authInfo.SignerInfos[0]
 
-	chainID, err := evmostypes.ParseChainID(signDoc.ChainId)
+	chainID, err := hhubtypes.ParseChainID(signDoc.ChainId)
 	if err != nil {
 		return apitypes.TypedData{}, fmt.Errorf("invalid chain ID passed as argument: %w", err)
 	}
@@ -189,8 +188,6 @@ func decodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 		Amount: authInfo.Fee.Amount,
 		Gas:    authInfo.Fee.GasLimit,
 	}
-
-	tip := authInfo.Tip
 
 	// WrapTxToTypedData expects the payload as an Amino Sign Doc
 	signBytes := legacytx.StdSignBytes(
@@ -201,7 +198,6 @@ func decodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 		*stdFee,
 		msgs,
 		body.Memo,
-		tip,
 	)
 
 	typedData, err := WrapTxToTypedData(
@@ -235,16 +231,20 @@ func validatePayloadMessages(msgs []sdk.Msg) error {
 	var msgSigner sdk.AccAddress
 
 	for i, m := range msgs {
-		if len(m.GetSigners()) != 1 {
+		signers, _, err := protoCodec.GetMsgV1Signers(m)
+		if err != nil {
+			return fmt.Errorf("error getting signers. %w", err)
+		}
+		if len(signers) != 1 {
 			return errors.New("unable to build EIP-712 payload: expect exactly 1 signer")
 		}
 
 		if i == 0 {
-			msgSigner = m.GetSigners()[0]
+			msgSigner = signers[0]
 			continue
 		}
 
-		if !msgSigner.Equals(m.GetSigners()[0]) {
+		if !msgSigner.Equals(sdk.AccAddress(signers[0])) {
 			return errors.New("unable to build EIP-712 payload: multiple signers detected")
 		}
 	}

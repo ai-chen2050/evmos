@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,7 +17,7 @@ import (
 var (
 	epochNumber int64
 	skipped     uint64
-	provision   sdk.Dec
+	provision   math.LegacyDec
 )
 
 var _ = Describe("Inflation", Ordered, func() {
@@ -32,11 +33,11 @@ var _ = Describe("Inflation", Ordered, func() {
 				params := s.app.InflationKeeper.GetParams(s.ctx)
 				params.EnableInflation = true
 				params.ExponentialCalculation = types.ExponentialCalculation{
-					A:             sdk.NewDec(int64(300_000_000)),
-					R:             sdk.NewDecWithPrec(60, 2), // 60%
-					C:             sdk.NewDec(int64(6_375_000)),
-					BondingTarget: sdk.NewDecWithPrec(66, 2), // 66%
-					MaxVariance:   sdk.ZeroDec(),             // 0%
+					A:             math.LegacyNewDec(int64(300_000_000)),
+					R:             math.LegacyNewDecWithPrec(60, 2), // 60%
+					C:             math.LegacyNewDec(int64(6_375_000)),
+					BondingTarget: math.LegacyNewDecWithPrec(66, 2), // 66%
+					MaxVariance:   math.LegacyZeroDec(),             // 0%
 				}
 				_ = s.app.InflationKeeper.SetParams(s.ctx, params)
 			})
@@ -94,9 +95,9 @@ var _ = Describe("Inflation", Ordered, func() {
 				params := s.app.InflationKeeper.GetParams(s.ctx)
 				params.EnableInflation = true
 				params.InflationDistribution = types.InflationDistribution{
-					UsageIncentives: sdk.NewDecWithPrec(533333334, 9), // 0.53 = 40% / (1 - 25%)
-					StakingRewards:  sdk.NewDecWithPrec(333333333, 9), // 0.33 = 25% / (1 - 25%)
-					CommunityPool:   sdk.NewDecWithPrec(133333333, 9), // 0.13 = 10% / (1 - 25%)
+					UsageIncentives: math.LegacyNewDecWithPrec(533333334, 9), // 0.53 = 40% / (1 - 25%)
+					StakingRewards:  math.LegacyNewDecWithPrec(333333333, 9), // 0.33 = 25% / (1 - 25%)
+					CommunityPool:   math.LegacyNewDecWithPrec(133333333, 9), // 0.13 = 10% / (1 - 25%)
 				}
 				_ = s.app.InflationKeeper.SetParams(s.ctx, params)
 			})

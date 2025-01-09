@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -62,7 +63,7 @@ func newSignedEthTx(
 		return nil, errors.New("unknown transaction type")
 	}
 
-	sig, _, err := krSigner.SignByAddress(addr, ethTx.Hash().Bytes())
+	sig, _, err := krSigner.SignByAddress(addr, ethTx.Hash().Bytes(), signing.SignMode_SIGN_MODE_TEXTUAL)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +142,7 @@ func newNativeMessage(
 	txType byte,
 	data []byte,
 	accessList ethtypes.AccessList,
-) (core.Message, error) {
+) (*core.Message, error) {
 	msgSigner := ethtypes.MakeSigner(cfg, big.NewInt(blockHeight))
 
 	msg, baseFee, err := newEthMsgTx(nonce, address, krSigner, ethSigner, txType, data, accessList)
@@ -154,7 +155,7 @@ func newNativeMessage(
 		return nil, err
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 func BenchmarkApplyTransaction(b *testing.B) {
@@ -266,7 +267,7 @@ func BenchmarkApplyMessage(b *testing.B) {
 		require.NoError(b, err)
 
 		b.StartTimer()
-		resp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, m, nil, true)
+		resp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, *m, nil, true)
 		b.StopTimer()
 
 		require.NoError(b, err)
@@ -302,7 +303,7 @@ func BenchmarkApplyMessageWithLegacyTx(b *testing.B) {
 		require.NoError(b, err)
 
 		b.StartTimer()
-		resp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, m, nil, true)
+		resp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, *m, nil, true)
 		b.StopTimer()
 
 		require.NoError(b, err)
@@ -337,7 +338,7 @@ func BenchmarkApplyMessageWithDynamicFeeTx(b *testing.B) {
 		require.NoError(b, err)
 
 		b.StartTimer()
-		resp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, m, nil, true)
+		resp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, *m, nil, true)
 		b.StopTimer()
 
 		require.NoError(b, err)

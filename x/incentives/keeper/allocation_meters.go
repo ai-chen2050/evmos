@@ -19,7 +19,9 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/hetu-project/hetu-hub/v1/x/incentives/types"
@@ -30,7 +32,7 @@ func (k Keeper) GetAllAllocationMeters(ctx sdk.Context) []sdk.DecCoin {
 	allocationMeters := []sdk.DecCoin{}
 
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixAllocationMeter)
+	iterator := storetypes.KVStorePrefixIterator(store, types.KeyPrefixAllocationMeter)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -57,11 +59,11 @@ func (k Keeper) GetAllocationMeter(
 	if bz == nil {
 		return sdk.DecCoin{
 			Denom:  denom,
-			Amount: sdk.ZeroDec(),
+			Amount: math.LegacyZeroDec(),
 		}, false
 	}
 
-	var amount sdk.Dec
+	var amount math.LegacyDec
 	err := amount.Unmarshal(bz)
 	if err != nil {
 		panic(fmt.Errorf("unable to unmarshal amount value %v", err))

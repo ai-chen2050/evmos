@@ -21,6 +21,7 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
+	protov2 "google.golang.org/protobuf/proto"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -28,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -210,6 +212,10 @@ func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
 	return []sdk.Msg{msg}
 }
 
+func (msg *MsgEthereumTx) GetMsgsV2() ([]protov2.Message, error) {
+	return nil, errors.New("not implemented")
+}
+
 // GetSigners returns the expected signers for an Ethereum transaction message.
 // For such a message, there should exist only a single 'signer'.
 //
@@ -254,7 +260,7 @@ func (msg *MsgEthereumTx) Sign(ethSigner ethtypes.Signer, keyringSigner keyring.
 	tx := msg.AsTransaction()
 	txHash := ethSigner.Hash(tx)
 
-	sig, _, err := keyringSigner.SignByAddress(from, txHash.Bytes())
+	sig, _, err := keyringSigner.SignByAddress(from, txHash.Bytes(), signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 	if err != nil {
 		return err
 	}
@@ -316,7 +322,12 @@ func (msg MsgEthereumTx) AsTransaction() *ethtypes.Transaction {
 
 // AsMessage creates an Ethereum core.Message from the msg fields
 func (msg MsgEthereumTx) AsMessage(signer ethtypes.Signer, baseFee *big.Int) (core.Message, error) {
-	return msg.AsTransaction().AsMessage(signer, baseFee)
+	
+	ethmsg, err := core.TransactionToMessage(msg.AsTransaction(), signer, baseFee)
+	if err != nil {
+		return core.Message{}, err
+	}
+	return *ethmsg, nil
 }
 
 // GetSender extracts the sender address from the signature values using the latest signer for the given chainID.

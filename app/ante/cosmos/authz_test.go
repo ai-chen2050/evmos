@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"
 
@@ -401,7 +402,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			)
 
 			if tc.isEIP712 {
-				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20))
+				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, math.NewInt(20))
 				fees := sdk.NewCoins(coinAmount)
 				cosmosTxArgs := utiltx.CosmosTxArgs{
 					TxCfg:   suite.clientCtx.TxConfig,
@@ -430,20 +431,21 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			bz, err := txEncoder(tx)
 			suite.Require().NoError(err)
 
-			resCheckTx := suite.app.CheckTx(
-				abci.RequestCheckTx{
-					Tx:   bz,
-					Type: abci.CheckTxType_New,
+			header := suite.ctx.BlockHeader()
+			blockRes, err := suite.app.FinalizeBlock(
+				&abci.RequestFinalizeBlock{
+					Height:             suite.ctx.BlockHeight() + 1,
+					Txs:                [][]byte{bz},
+					Hash:               header.AppHash,
+					NextValidatorsHash: header.NextValidatorsHash,
+					ProposerAddress:    header.ProposerAddress,
+					Time:               header.Time.Add(time.Second),
 				},
 			)
-			suite.Require().Equal(resCheckTx.Code, tc.expectedCode, resCheckTx.Log)
-
-			resDeliverTx := suite.app.DeliverTx(
-				abci.RequestDeliverTx{
-					Tx: bz,
-				},
-			)
-			suite.Require().Equal(resDeliverTx.Code, tc.expectedCode, resDeliverTx.Log)
+			suite.Require().NoError(err)
+			suite.Require().Len(blockRes.TxResults, 1)
+			txRes := blockRes.TxResults[0]
+			suite.Require().Equal(txRes.Code, tc.expectedCode, txRes.Log)
 		})
 	}
 }

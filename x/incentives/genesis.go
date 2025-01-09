@@ -20,6 +20,7 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -45,7 +46,7 @@ func InitGenesis(
 		panic("the incentives module account has not been set")
 	}
 
-	allocationMeters := make(map[string]sdk.Dec)
+	allocationMeters := make(map[string]math.LegacyDec)
 
 	for _, incentive := range data.Incentives {
 		// Set Incentives

@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
@@ -34,6 +33,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clientkeys "github.com/hetu-project/hetu-hub/v1/client/keys"
 	evmoskeyring "github.com/hetu-project/hetu-hub/v1/crypto/keyring"
+	hetutypes "github.com/hetu-project/hetu-hub/v1/types"
 	feemarkettypes "github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -86,9 +86,9 @@ func (suite *LedgerTestSuite) SetupEvmosApp() {
 
 	// init app
 	suite.app = app.Setup(false, feemarkettypes.DefaultGenesisState())
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{
+	suite.ctx = suite.app.BaseApp.NewContextLegacy(false, tmproto.Header{
 		Height:          1,
-		ChainID:         "evmos_9001-1",
+		ChainID:         "hhub_9001-1",
 		Time:            time.Now().UTC(),
 		ProposerAddress: consAddress.Bytes(),
 
@@ -112,7 +112,7 @@ func (suite *LedgerTestSuite) SetupEvmosApp() {
 	})
 }
 
-func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, encCfg params.EncodingConfig) (keyring.Keyring, client.Context, context.Context) {
+func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, encCfg hetutypes.EncodingConfig) (keyring.Keyring, client.Context, context.Context) {
 	kr, err := keyring.New(
 		sdk.KeyringServiceName(),
 		keyring.BackendTest,
@@ -152,7 +152,7 @@ func (suite *LedgerTestSuite) evmosAddKeyCmd() *cobra.Command {
 	err := algoFlag.Value.Set(string(hd.EthSecp256k1Type))
 	suite.Require().NoError(err)
 
-	cmd.Flags().AddFlagSet(keys.Commands("home").PersistentFlags())
+	cmd.Flags().AddFlagSet(keys.Commands().PersistentFlags())
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.EthSecp256k1Option())

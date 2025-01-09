@@ -14,7 +14,6 @@ import (
 
 	proto "github.com/gogo/protobuf/proto"
 
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	utiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
 	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
@@ -53,7 +52,7 @@ func TestUnwrapEthererumMsg(t *testing.T) {
 	_, err := evmtypes.UnwrapEthereumMsg(nil, common.Hash{})
 	require.NotNil(t, err)
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := encoding.MakeConfig()
 	clientCtx := client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	builder, _ := clientCtx.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 

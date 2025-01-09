@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"cosmossdk.io/math"
 	"github.com/hetu-project/hetu-hub/v1/utils"
 	"github.com/hetu-project/hetu-hub/v1/x/erc20/keeper"
 
@@ -59,9 +60,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 	registeredDenom := cosmosTokenBase
 	coins := sdk.NewCoins(
-		sdk.NewCoin(utils.BaseDenom, sdk.NewInt(1000)),
-		sdk.NewCoin(registeredDenom, sdk.NewInt(1000)), // some ERC20 token
-		sdk.NewCoin(ibcBase, sdk.NewInt(1000)),         // some IBC coin with a registered token pair
+		sdk.NewCoin(utils.BaseDenom, math.NewInt(1000)),
+		sdk.NewCoin(registeredDenom, math.NewInt(1000)), // some ERC20 token
+		sdk.NewCoin(ibcBase, math.NewInt(1000)),         // some IBC coin with a registered token pair
 	)
 
 	testCases := []struct {
@@ -171,7 +172,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			malleate: func() {
 				// base denom should be prefixed
 				sourcePrefix := transfertypes.GetDenomPrefix(transfertypes.PortID, sourceChannel)
-				prefixedDenom := sourcePrefix + s.app.StakingKeeper.BondDenom(suite.ctx)
+				skDenom, err := s.app.StakingKeeper.BondDenom(suite.ctx)
+				suite.Require().NoError(err)
+				prefixedDenom := sourcePrefix + skDenom
 				transfer := transfertypes.NewFungibleTokenPacketData(prefixedDenom, "100", secpAddrCosmos, ethsecpAddrEvmos, "")
 				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
 				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, evmosChannel, timeoutHeight, 0)
@@ -210,9 +213,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			receiver:   ethsecpAddr,
 			expErc20s:  big.NewInt(0),
 			expCoins: sdk.NewCoins(
-				sdk.NewCoin(utils.BaseDenom, sdk.NewInt(1000)),
-				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
-				sdk.NewCoin(ibcBase, sdk.NewInt(1000)),
+				sdk.NewCoin(utils.BaseDenom, math.NewInt(1000)),
+				sdk.NewCoin(registeredDenom, math.NewInt(0)),
+				sdk.NewCoin(ibcBase, math.NewInt(1000)),
 			),
 			checkBalances:    false,
 			disableTokenPair: true,
@@ -246,10 +249,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			name: "ibc conversion - sender == receiver and from evm chain",
 			malleate: func() {
-				claimsParams := suite.app.ClaimsKeeper.GetParams(suite.ctx)
-				claimsParams.EVMChannels = []string{evmosChannel}
-				suite.app.ClaimsKeeper.SetParams(suite.ctx, claimsParams) //nolint:errcheck
-
 				sourcePrefix := transfertypes.GetDenomPrefix(transfertypes.PortID, sourceChannel)
 				prefixedDenom := sourcePrefix + registeredDenom
 				transfer := transfertypes.NewFungibleTokenPacketData(prefixedDenom, "100", secpAddrCosmos, secpAddrEvmos, "")
@@ -261,9 +260,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			checkBalances: true,
 			expErc20s:     big.NewInt(1000),
 			expCoins: sdk.NewCoins(
-				sdk.NewCoin(utils.BaseDenom, sdk.NewInt(1000)),
-				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
-				sdk.NewCoin(ibcBase, sdk.NewInt(1000)),
+				sdk.NewCoin(utils.BaseDenom, math.NewInt(1000)),
+				sdk.NewCoin(registeredDenom, math.NewInt(0)),
+				sdk.NewCoin(ibcBase, math.NewInt(1000)),
 			),
 		},
 		{
@@ -282,9 +281,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			expErc20s:     big.NewInt(1000),
 			checkBalances: true,
 			expCoins: sdk.NewCoins(
-				sdk.NewCoin(utils.BaseDenom, sdk.NewInt(1000)),
-				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
-				sdk.NewCoin(ibcBase, sdk.NewInt(1000)),
+				sdk.NewCoin(utils.BaseDenom, math.NewInt(1000)),
+				sdk.NewCoin(registeredDenom, math.NewInt(0)),
+				sdk.NewCoin(ibcBase, math.NewInt(1000)),
 			),
 		},
 		{
@@ -307,9 +306,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			checkBalances: true,
 			expErc20s:     big.NewInt(1000),
 			expCoins: sdk.NewCoins(
-				sdk.NewCoin(ibcBase, sdk.NewInt(1000)),
-				sdk.NewCoin(utils.BaseDenom, sdk.NewInt(1000)),
-				sdk.NewCoin(registeredDenom, sdk.NewInt(0)),
+				sdk.NewCoin(ibcBase, math.NewInt(1000)),
+				sdk.NewCoin(utils.BaseDenom, math.NewInt(1000)),
+				sdk.NewCoin(registeredDenom, math.NewInt(0)),
 			),
 		},
 	}
@@ -347,7 +346,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.app.BankKeeper,
 				suite.app.EvmKeeper,
 				suite.app.StakingKeeper,
-				suite.app.ClaimsKeeper,
 			)
 
 			// Fund receiver account with EVMOS, ERC20 coins and IBC vouchers
@@ -445,7 +443,7 @@ func (suite *KeeperTestSuite) TestConvertCoinToERC20FromPacket() {
 				sender := sdk.MustAccAddressFromBech32(senderAddr)
 
 				// Mint coins on account to simulate receiving ibc transfer
-				coinEvmos := sdk.NewCoin(pair.Denom, sdk.NewInt(10))
+				coinEvmos := sdk.NewCoin(pair.Denom, math.NewInt(10))
 				coins := sdk.NewCoins(coinEvmos)
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, inflationtypes.ModuleName, coins)
 				suite.Require().NoError(err)
@@ -519,7 +517,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					suite.app.BankKeeper,
 					moduleAcc.GetName(),
 					sdk.NewCoins(
-						sdk.NewCoin(pair.Denom, sdk.NewInt(100)),
+						sdk.NewCoin(pair.Denom, math.NewInt(100)),
 					),
 				)
 				suite.Require().NoError(err)
@@ -546,7 +544,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					suite.app.BankKeeper,
 					sender,
 					sdk.NewCoins(
-						sdk.NewCoin(pair.Denom, sdk.NewInt(100)),
+						sdk.NewCoin(pair.Denom, math.NewInt(100)),
 					),
 				)
 				suite.Require().NoError(err)
@@ -573,7 +571,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					suite.app.BankKeeper,
 					sender,
 					sdk.NewCoins(
-						sdk.NewCoin(pair.Denom, sdk.NewInt(100)),
+						sdk.NewCoin(pair.Denom, math.NewInt(100)),
 					),
 				)
 				suite.Require().NoError(err)
@@ -640,7 +638,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				sender := sdk.MustAccAddressFromBech32(senderAddr)
 
 				// Mint coins on account to simulate receiving ibc transfer
-				coinEvmos := sdk.NewCoin(pair.Denom, sdk.NewInt(10))
+				coinEvmos := sdk.NewCoin(pair.Denom, math.NewInt(10))
 				coins := sdk.NewCoins(coinEvmos)
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, inflationtypes.ModuleName, coins)
 				suite.Require().NoError(err)

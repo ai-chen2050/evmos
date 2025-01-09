@@ -7,6 +7,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/cmd/config"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/ethereum/eip712"
@@ -28,7 +28,7 @@ import (
 var (
 	chainID = utils.TestnetChainID + "-1"
 	ctx     = client.Context{}.WithTxConfig(
-		encoding.MakeConfig(app.ModuleBasics).TxConfig,
+		encoding.MakeConfig().TxConfig,
 	)
 )
 var feePayerAddress = "hhub17xpfvakm2amg962yls6f84z3kell8c5l9zem6z"
@@ -92,8 +92,14 @@ func TestLedgerPreprocessing(t *testing.T) {
 
 		// Verify tx fields are unchanged
 		tx := tc.txBuilder.GetTx()
+		addrCodec := address.Bech32Codec{
+			Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
+		}
 
-		require.Equal(t, tx.FeePayer().String(), tc.expectedFeePayer)
+		txFeePayer, err := addrCodec.BytesToString(tx.FeePayer())
+		require.NoError(t, err)
+
+		require.Equal(t, txFeePayer, tc.expectedFeePayer)
 		require.Equal(t, tx.GetGas(), tc.expectedGas)
 		require.Equal(t, tx.GetFee().AmountOf(utils.BaseDenom), tc.expectedFee)
 		require.Equal(t, tx.GetMemo(), tc.expectedMemo)

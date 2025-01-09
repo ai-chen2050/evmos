@@ -13,7 +13,7 @@ message Incentive {
   string contract = 1;
   // allocations is a slice of denoms and percentages of rewards to be allocated
   repeated cosmos.base.v1beta1.DecCoin allocations = 2
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"];
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDecCoins"];
   // epochs defines the number of remaining epochs for the incentive
   uint32 epochs = 3;
   // start_time of the incentive distribution
@@ -42,7 +42,7 @@ message RegisterIncentiveProposal {
   string contract = 3;
   // allocations defines the denoms and percentage of rewards to be allocated
   repeated cosmos.base.v1beta1.DecCoin allocations = 4
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"];
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDecCoins"];
   // epochs is the number of remaining epochs for the incentive
   uint32 epochs = 5;
 }

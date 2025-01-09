@@ -19,7 +19,7 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/armon/go-metrics"
+	"github.com/hashicorp/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -73,10 +73,8 @@ func (k Keeper) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	claimsParams := k.claimsKeeper.GetParams(ctx)
-
 	// if sender == recipient, and is not from an EVM Channel recovery was executed
-	if sender.Equals(recipient) && !claimsParams.IsEVMChannel(packet.DestinationChannel) {
+	if sender.Equals(recipient) {
 		// Continue to the next IBC middleware by returning the original ACK.
 		return ack
 	}
@@ -96,7 +94,10 @@ func (k Keeper) OnRecvPacket(
 	)
 
 	// check if the coin is a native staking token
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
 	if coin.Denom == bondDenom {
 		// no-op, received coin is the staking denomination
 		return ack
@@ -135,9 +136,9 @@ func (k Keeper) OnRecvPacket(
 			[]string{types.ModuleName, "ibc", "on_recv", "total"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("denom", coin.Denom),
-				telemetry.NewLabel("source_channel", packet.SourceChannel),
-				telemetry.NewLabel("source_port", packet.SourcePort),
+				metrics.Label{Name: "denom", Value: coin.Denom},
+				metrics.Label{Name: "source_channel", Value: packet.SourceChannel},
+				metrics.Label{Name: "source_port", Value: packet.SourcePort},
 			},
 		)
 	}()
@@ -193,7 +194,10 @@ func (k Keeper) ConvertCoinToERC20FromPacket(ctx sdk.Context, data transfertypes
 	coin := ibc.GetSentCoin(data.Denom, data.Amount)
 
 	// check if the coin is a native staking token
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return err
+	}
 	if coin.Denom == bondDenom {
 		// no-op, received coin is the staking denomination
 		return nil

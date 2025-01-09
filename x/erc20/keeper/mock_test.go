@@ -12,6 +12,7 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/x/evm/statedb"
 	evm "github.com/hetu-project/hetu-hub/v1/x/evm/types"
 	"github.com/stretchr/testify/mock"
+	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 var _ types.EVMKeeper = &MockEVMKeeper{}
@@ -103,4 +104,17 @@ func (b *MockBankKeeper) HasSupply(_ sdk.Context, _ string) bool {
 func (b *MockBankKeeper) GetBalance(_ sdk.Context, _ sdk.AccAddress, _ string) sdk.Coin {
 	args := b.Called(mock.Anything, mock.Anything)
 	return args.Get(0).(sdk.Coin)
+}
+
+// AllBalances mocks base method.
+func (b *MockBankKeeper) AllBalances(arg0 context.Context, arg1 *types0.QueryAllBalancesRequest) (*types0.QueryAllBalancesResponse, error) {
+	args := b.Called(mock.Anything, mock.Anything)
+	ret0, _ := args.Get(0).(*types0.QueryAllBalancesResponse)
+	ret1, _ := args.Get(1).(error)
+	return ret0, ret1
+}
+
+// AppendSendRestriction mocks base method.
+func (b *MockBankKeeper) AppendSendRestriction(restriction types0.SendRestrictionFn) {
+	b.Called(mock.Anything, mock.Anything)
 }

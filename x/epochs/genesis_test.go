@@ -5,12 +5,12 @@ import (
 	"time"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	feemarkettypes "github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 	"github.com/stretchr/testify/require"
 
 	simapp "github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/x/epochs"
 	"github.com/hetu-project/hetu-hub/v1/x/epochs/types"
+	feemarkettypes "github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 )
 
 func TestEpochsExportGenesis(t *testing.T) {
@@ -20,7 +20,7 @@ func TestEpochsExportGenesis(t *testing.T) {
 	feemarketGenesis.Params.NoBaseFee = false
 
 	app := simapp.Setup(false, feemarketGenesis)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContextLegacy(false, tmproto.Header{})
 
 	chainStartTime := ctx.BlockTime()
 	chainStartHeight := ctx.BlockHeight()
@@ -51,7 +51,7 @@ func TestEpochsInitGenesis(t *testing.T) {
 	feemarketGenesis.Params.NoBaseFee = false
 
 	app := simapp.Setup(false, feemarketGenesis)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContextLegacy(false, tmproto.Header{})
 
 	// On init genesis, default epochs information is set
 	// To check init genesis again, should make it fresh status

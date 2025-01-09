@@ -108,7 +108,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	simappparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
 
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
@@ -342,7 +341,7 @@ func NewEvmos(
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
-	encodingConfig simappparams.EncodingConfig,
+	encodingConfig evmostypes.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *Evmos {
@@ -957,6 +956,19 @@ func NewEvmos(
 // Name returns the name of the App
 func (app *Evmos) Name() string { return app.BaseApp.Name() }
 
+func (app *Evmos) TxConfig() client.TxConfig {
+	return app.txConfig
+}
+
+func (app *Evmos) EncodingConfig() evmostypes.EncodingConfig {
+	return evmostypes.EncodingConfig{
+		InterfaceRegistry: app.InterfaceRegistry(),
+		Codec:             app.AppCodec(),
+		TxConfig:          app.TxConfig(),
+		Amino:             app.LegacyAmino(),
+	}
+}
+
 func (app *Evmos) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
 	options := ante.HandlerOptions{
 		Cdc:                    app.appCodec,
@@ -1198,7 +1210,7 @@ func (app *Evmos) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 
 // GetTxConfig implements the TestingApp interface.
 func (app *Evmos) GetTxConfig() client.TxConfig {
-	cfg := encoding.MakeConfig(ModuleBasics)
+	cfg := encoding.MakeConfig()
 	return cfg.TxConfig
 }
 

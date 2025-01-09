@@ -20,6 +20,7 @@ import (
 	"errors"
 	fmt "fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
@@ -101,8 +102,8 @@ func validateAllocations(allocations sdk.DecCoins) error {
 	return allocations.Validate()
 }
 
-func validateAmount(amount sdk.Dec) error {
-	if amount.GT(sdk.OneDec()) || amount.LTE(sdk.ZeroDec()) {
+func validateAmount(amount math.LegacyDec) error {
+	if amount.GT(math.LegacyOneDec()) || amount.LTE(math.LegacyZeroDec()) {
 		return fmt.Errorf("invalid amount for allocation: %s", amount)
 	}
 	return nil

@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), "evmos_9001-1", suite.consAddress, nil, nil,
 	)
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, header)
+	suite.ctx = suite.app.BaseApp.NewContextLegacy(checkTx, header)
 
 	// setup query helpers
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())

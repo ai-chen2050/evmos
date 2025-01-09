@@ -16,6 +16,7 @@
 package testutil
 
 import (
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -39,9 +40,13 @@ import (
 //  4. Commit
 func Commit(ctx sdk.Context, app *app.Evmos, t time.Duration, vs *tmtypes.ValidatorSet) (sdk.Context, error) {
 	header := ctx.BlockHeader()
+	req := abci.RequestFinalizeBlock{Height: header.Height}
 
 	if vs != nil {
-		res := app.EndBlock(abci.RequestEndBlock{Height: header.Height})
+		res, err := app.FinalizeBlock(&req)
+		if err != nil {
+			return ctx, err
+		}
 
 		nextVals, err := applyValSetChanges(vs, res.ValidatorUpdates)
 		if err != nil {
@@ -50,20 +55,24 @@ func Commit(ctx sdk.Context, app *app.Evmos, t time.Duration, vs *tmtypes.Valida
 		header.ValidatorsHash = vs.Hash()
 		header.NextValidatorsHash = nextVals.Hash()
 	} else {
-		app.EndBlocker(ctx, abci.RequestEndBlock{Height: header.Height})
+		if _, err := app.EndBlocker(ctx); err != nil {
+			return ctx, err
+		}
 	}
 
-	_ = app.Commit()
+	if _, err := app.Commit(); err != nil {
+		return ctx, err
+	}
 
 	header.Height++
 	header.Time = header.Time.Add(t)
 	header.AppHash = app.LastCommitID().Hash
 
-	app.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
-	})
+	if _, err := app.BeginBlocker(ctx); err != nil {
+		return ctx, err
+	}
 
-	return app.BaseApp.NewContext(false, header), nil
+	return ctx.WithBlockHeader(header), nil
 }
 
 // DeliverTx delivers a cosmos tx for a given set of msgs
@@ -73,8 +82,8 @@ func DeliverTx(
 	priv cryptotypes.PrivKey,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
-) (abci.ResponseDeliverTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+) (abci.ExecTxResult, error) {
+	txConfig := encoding.MakeConfig().TxConfig
 	tx, err := tx.PrepareCosmosTx(
 		ctx,
 		appEvmos,
@@ -88,7 +97,7 @@ func DeliverTx(
 		},
 	)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return abci.ExecTxResult{}, err
 	}
 	return BroadcastTxBytes(appEvmos, txConfig.TxEncoder(), tx)
 }
@@ -100,12 +109,12 @@ func DeliverEthTx(
 	appEvmos *app.Evmos,
 	priv cryptotypes.PrivKey,
 	msgs ...sdk.Msg,
-) (abci.ResponseDeliverTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+) (abci.ExecTxResult, error) {
+	txConfig := encoding.MakeConfig().TxConfig
 
 	tx, err := tx.PrepareEthTx(txConfig, appEvmos, priv, msgs...)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return abci.ExecTxResult{}, err
 	}
 	return BroadcastTxBytes(appEvmos, txConfig.TxEncoder(), tx)
 }
@@ -118,7 +127,7 @@ func CheckTx(
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
 ) (abci.ResponseCheckTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+	txConfig := encoding.MakeConfig().TxConfig
 
 	tx, err := tx.PrepareCosmosTx(
 		ctx,
@@ -144,7 +153,7 @@ func CheckEthTx(
 	priv cryptotypes.PrivKey,
 	msgs ...sdk.Msg,
 ) (abci.ResponseCheckTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+	txConfig := encoding.MakeConfig().TxConfig
 
 	tx, err := tx.PrepareEthTx(txConfig, appEvmos, priv, msgs...)
 	if err != nil {
@@ -154,20 +163,28 @@ func CheckEthTx(
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(app *app.Evmos, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseDeliverTx, error) {
+func BroadcastTxBytes(app *app.Evmos, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return abci.ExecTxResult{}, err
 	}
 
-	req := abci.RequestDeliverTx{Tx: bz}
-	res := app.BaseApp.DeliverTx(req)
-	if res.Code != 0 {
-		return abci.ResponseDeliverTx{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, res.Log)
+	req := abci.RequestFinalizeBlock{Txs: [][]byte{bz}}
+
+	res, err := app.BaseApp.FinalizeBlock(&req)
+	if err != nil {
+		return abci.ExecTxResult{}, err
+	}
+	if len(res.TxResults) != 1 {
+		return abci.ExecTxResult{}, fmt.Errorf("unexpected transaction results. Expected 1, got: %d", len(res.TxResults))
+	}
+	txRes := res.TxResults[0]
+	if txRes.Code != 0 {
+		return abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "log: %s", txRes.Log)
 	}
 
-	return res, nil
+	return *txRes, nil
 }
 
 // checkTxBytes encodes a transaction and calls checkTx on the app.
@@ -178,12 +195,15 @@ func checkTxBytes(app *app.Evmos, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.Resp
 	}
 
 	req := abci.RequestCheckTx{Tx: bz}
-	res := app.BaseApp.CheckTx(req)
+	res, err := app.BaseApp.CheckTx(&req)
+	if err != nil {
+		return abci.ResponseCheckTx{}, err
+	}
 	if res.Code != 0 {
 		return abci.ResponseCheckTx{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, res.Log)
 	}
 
-	return res, nil
+	return *res, nil
 }
 
 // applyValSetChanges takes in tmtypes.ValidatorSet and []abci.ValidatorUpdate and will return a new tmtypes.ValidatorSet which has the

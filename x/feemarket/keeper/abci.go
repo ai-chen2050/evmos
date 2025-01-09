@@ -16,23 +16,24 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeginBlock updates base fee
-func (k *Keeper) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+func (k *Keeper) BeginBlock(ctx sdk.Context) error {
 	baseFee := k.CalculateBaseFee(ctx)
 
 	// return immediately if base fee is nil
 	if baseFee == nil {
-		return
+		return nil
 	}
 
 	k.SetBaseFee(ctx, baseFee)
@@ -48,15 +49,16 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 			sdk.NewAttribute(types.AttributeKeyBaseFee, baseFee.String()),
 		),
 	})
+	return nil
 }
 
 // EndBlock update block gas wanted.
 // The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
-func (k *Keeper) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) {
+func (k *Keeper) EndBlock(ctx sdk.Context) error {
 	if ctx.BlockGasMeter() == nil {
 		k.Logger(ctx).Error("block gas meter is nil when setting block gas wanted")
-		return
+		return errors.New("block gas meter is nil when setting block gas wanted")
 	}
 
 	gasWanted := sdkmath.NewIntFromUint64(k.GetTransientGasWanted(ctx))
@@ -64,12 +66,12 @@ func (k *Keeper) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) {
 
 	if !gasWanted.IsInt64() {
 		k.Logger(ctx).Error("integer overflow by integer type conversion. Gas wanted > MaxInt64", "gas wanted", gasWanted.String())
-		return
+		return errors.New("integer overflow by integer type conversion. Gas wanted > MaxInt64")
 	}
 
 	if !gasUsed.IsInt64() {
 		k.Logger(ctx).Error("integer overflow by integer type conversion. Gas used > MaxInt64", "gas used", gasUsed.String())
-		return
+		return errors.New("integer overflow by integer type conversion. Gas used > MaxInt64")
 	}
 
 	// to prevent BaseFee manipulation we limit the gasWanted so that
@@ -77,8 +79,8 @@ func (k *Keeper) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) {
 	// this will be keep BaseFee protected from un-penalized manipulation
 	// more info here https://github.com/evmos/ethermint/pull/1105#discussion_r888798925
 	minGasMultiplier := k.GetParams(ctx).MinGasMultiplier
-	limitedGasWanted := sdk.NewDec(gasWanted.Int64()).Mul(minGasMultiplier)
-	updatedGasWanted := sdk.MaxDec(limitedGasWanted, sdk.NewDec(gasUsed.Int64())).TruncateInt().Uint64()
+	limitedGasWanted := math.LegacyNewDec(gasWanted.Int64()).Mul(minGasMultiplier)
+	updatedGasWanted := sdkmath.LegacyMaxDec(limitedGasWanted, math.LegacyNewDec(gasUsed.Int64())).TruncateInt().Uint64()
 	k.SetBlockGasWanted(ctx, updatedGasWanted)
 
 	defer func() {
@@ -90,4 +92,5 @@ func (k *Keeper) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) {
 		sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight())),
 		sdk.NewAttribute("amount", fmt.Sprintf("%d", updatedGasWanted)),
 	))
+	return nil
 }

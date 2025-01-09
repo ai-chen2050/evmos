@@ -42,14 +42,14 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), utils.MainnetChainID+"-1", consAddress, nil, nil)
-	suite.ctx = suite.app.BaseApp.NewContext(isCheckTx, header)
+	suite.ctx = suite.app.BaseApp.NewContextLegacy(isCheckTx, header)
 
 	suite.denom = utils.BaseDenom
 	evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 	evmParams.EvmDenom = suite.denom
 	_ = suite.app.EvmKeeper.SetParams(suite.ctx, evmParams)
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := encoding.MakeConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
 

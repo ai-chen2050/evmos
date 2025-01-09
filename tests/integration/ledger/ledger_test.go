@@ -4,20 +4,21 @@ import (
 	"bytes"
 	"context"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
-
-	"github.com/hetu-project/hetu-hub/v1/app"
+	
 	"github.com/hetu-project/hetu-hub/v1/crypto/hd"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/tests/integration/ledger/mocks"
 	"github.com/hetu-project/hetu-hub/v1/testutil"
 	utiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
-
+	hhubtypes "github.com/hetu-project/hetu-hub/v1/types"
+	
 	"github.com/spf13/cobra"
-
+	
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil"
 	sdktestutilcli "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,7 +40,7 @@ var (
 var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	var (
 		receiverAccAddr sdk.AccAddress
-		encCfg          params.EncodingConfig
+		encCfg          hhubtypes.EncodingConfig
 		kr              keyring.Keyring
 		mockedIn        sdktestutil.BufferReader
 		clientCtx       client.Context
@@ -57,7 +58,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	Describe("Adding a key from ledger using the CLI", func() {
 		BeforeEach(func() {
 			krHome = s.T().TempDir()
-			encCfg = encoding.MakeConfig(app.ModuleBasics)
+			encCfg = encoding.MakeConfig()
 
 			cmd = s.evmosAddKeyCmd()
 
@@ -102,7 +103,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	Describe("Singing a transactions", func() {
 		BeforeEach(func() {
 			krHome = s.T().TempDir()
-			encCfg = encoding.MakeConfig(app.ModuleBasics)
+			encCfg = encoding.MakeConfig()
 
 			var err error
 
@@ -144,7 +145,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 
 					msg := []byte("test message")
 
-					signed, _, err := kr.SignByAddress(ledgerAddr, msg)
+					signed, _, err := kr.SignByAddress(ledgerAddr, msg, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 					s.Require().NoError(err, "failed to sign messsage")
 
 					valid := s.pubKey.VerifySignature(msg, signed)
@@ -158,7 +159,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 
 					msg := []byte("test message")
 
-					_, _, err = kr.SignByAddress(ledgerAddr, msg)
+					_, _, err = kr.SignByAddress(ledgerAddr, msg, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 
 					s.Require().Error(err, "false positive result, error expected")
 
@@ -174,14 +175,14 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 						s.app.BankKeeper,
 						s.accAddr,
 						sdk.NewCoins(
-							sdk.NewCoin("ahhub", sdk.NewInt(100000000000000)),
+							sdk.NewCoin("ahhub", math.NewInt(100000000000000)),
 						),
 					)
 					s.Require().NoError(err)
 
 					receiverAccAddr = sdk.AccAddress(utiltx.GenerateAddress().Bytes())
 
-					cmd = bankcli.NewSendTxCmd()
+					cmd = bankcli.NewSendTxCmd(s.app.AccountKeeper.AddressCodec())
 					mockedIn = sdktestutil.ApplyMockIODiscardOutErr(cmd)
 
 					kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encCfg)
@@ -199,7 +200,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					cmd.SetArgs([]string{
 						ledgerKey,
 						receiverAccAddr.String(),
-						sdk.NewCoin("ahhub", sdk.NewInt(1000)).String(),
+						sdk.NewCoin("ahhub", math.NewInt(1000)).String(),
 						s.FormatFlag(flags.FlagUseLedger),
 						s.FormatFlag(flags.FlagSkipConfirmation),
 					})
@@ -217,7 +218,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					cmd.SetArgs([]string{
 						ledgerKey,
 						receiverAccAddr.String(),
-						sdk.NewCoin("ahhub", sdk.NewInt(1000)).String(),
+						sdk.NewCoin("ahhub", math.NewInt(1000)).String(),
 						s.FormatFlag(flags.FlagUseLedger),
 						s.FormatFlag(flags.FlagSkipConfirmation),
 					})

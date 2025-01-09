@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,9 +33,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"valid - allocation limit 5%",
 			NewParams(
 				true,
-				sdk.NewDecWithPrec(5, 2),
+				math.LegacyNewDecWithPrec(5, 2),
 				epochstypes.WeekEpochID,
-				sdk.NewDecWithPrec(15, 1),
+				math.LegacyNewDecWithPrec(15, 1),
 			),
 			false,
 		},
@@ -42,9 +43,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"valid - allocation limit 100%",
 			NewParams(
 				true,
-				sdk.NewDecWithPrec(100, 2),
+				math.LegacyNewDecWithPrec(100, 2),
 				epochstypes.WeekEpochID,
-				sdk.NewDecWithPrec(15, 1),
+				math.LegacyNewDecWithPrec(15, 1),
 			),
 			false,
 		},
@@ -52,9 +53,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"valid - reward scaler 1000%",
 			NewParams(
 				true,
-				sdk.NewDecWithPrec(100, 2),
+				math.LegacyNewDecWithPrec(100, 2),
 				epochstypes.WeekEpochID,
-				sdk.NewDecWithPrec(10, 0),
+				math.LegacyNewDecWithPrec(10, 0),
 			),
 			false,
 		},
@@ -67,9 +68,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"invalid - nil allocation limit",
 			Params{
 				EnableIncentives:          true,
-				AllocationLimit:           sdk.Dec{},
+				AllocationLimit:           math.LegacyDec{},
 				IncentivesEpochIdentifier: epochstypes.WeekEpochID,
-				RewardScaler:              sdk.NewDecWithPrec(15, 1),
+				RewardScaler:              math.LegacyNewDecWithPrec(15, 1),
 			},
 			true,
 		},
@@ -79,7 +80,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 				EnableIncentives:          true,
 				AllocationLimit:           sdk.MustNewDecFromStr("-0.02"),
 				IncentivesEpochIdentifier: epochstypes.WeekEpochID,
-				RewardScaler:              sdk.NewDecWithPrec(15, 1),
+				RewardScaler:              math.LegacyNewDecWithPrec(15, 1),
 			},
 			true,
 		},
@@ -87,9 +88,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"invalid - allocation limit > 100%",
 			Params{
 				EnableIncentives:          true,
-				AllocationLimit:           sdk.NewDecWithPrec(101, 2),
+				AllocationLimit:           math.LegacyNewDecWithPrec(101, 2),
 				IncentivesEpochIdentifier: epochstypes.WeekEpochID,
-				RewardScaler:              sdk.NewDecWithPrec(15, 1),
+				RewardScaler:              math.LegacyNewDecWithPrec(15, 1),
 			},
 			true,
 		},
@@ -97,9 +98,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"invalid - nil reward scaler",
 			Params{
 				EnableIncentives:          true,
-				AllocationLimit:           sdk.NewDecWithPrec(5, 2),
+				AllocationLimit:           math.LegacyNewDecWithPrec(5, 2),
 				IncentivesEpochIdentifier: epochstypes.WeekEpochID,
-				RewardScaler:              sdk.Dec{},
+				RewardScaler:              math.LegacyDec{},
 			},
 			true,
 		},
@@ -107,7 +108,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"invalid - non-positive reward scaler",
 			Params{
 				EnableIncentives:          true,
-				AllocationLimit:           sdk.NewDecWithPrec(5, 2),
+				AllocationLimit:           math.LegacyNewDecWithPrec(5, 2),
 				IncentivesEpochIdentifier: epochstypes.WeekEpochID,
 				RewardScaler:              sdk.MustNewDecFromStr("-0.02"),
 			},
@@ -117,9 +118,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"invalid - empty epoch identifier",
 			Params{
 				EnableIncentives:          true,
-				AllocationLimit:           sdk.NewDecWithPrec(101, 2),
+				AllocationLimit:           math.LegacyNewDecWithPrec(101, 2),
 				IncentivesEpochIdentifier: "",
-				RewardScaler:              sdk.NewDecWithPrec(15, 1),
+				RewardScaler:              math.LegacyNewDecWithPrec(15, 1),
 			},
 			true,
 		},

@@ -7,7 +7,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	inflationkeeper "github.com/hetu-project/hetu-hub/v1/x/inflation/keeper"
 	v2types "github.com/hetu-project/hetu-hub/v1/x/inflation/migrations/v2/types"
@@ -29,15 +28,15 @@ func (ms mockSubspace) GetParamSetIfExists(_ sdk.Context, ps types.LegacyParams)
 }
 
 func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Subspace {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
+	encCfg := encoding.MakeConfig()
 	cdc := encCfg.Codec
 	return paramtypes.NewSubspace(cdc, encCfg.Amino, ms.storeKey, ms.transientKey, "test").WithKeyTable(keyTable)
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	encCfg := encoding.MakeConfig()
+	storeKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 
 	var outputParams v2types.V2Params

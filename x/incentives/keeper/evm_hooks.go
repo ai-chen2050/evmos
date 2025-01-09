@@ -48,8 +48,8 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *eth
 		return nil
 	}
 
-	contract := msg.To()
-	participant := msg.From()
+	contract := msg.To
+	participant := msg.From
 
 	// If theres no incentive registered for the contract, do nothing
 	if contract == nil || !k.IsIncentiveRegistered(ctx, *contract) {

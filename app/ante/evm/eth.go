@@ -17,6 +17,7 @@
 package evm
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 
@@ -170,6 +171,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	blockHeight := big.NewInt(ctx.BlockHeight())
 	homestead := ethCfg.IsHomestead(blockHeight)
 	istanbul := ethCfg.IsIstanbul(blockHeight)
+	shanghai := ethCfg.IsShanghai(blockHeight.Uint64())
 	var events sdk.Events
 
 	// Use the lowest priority of all the messages as the final one.
@@ -181,7 +183,6 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		if !ok {
 			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
-		from := msgEthTx.GetFrom()
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
@@ -199,15 +200,9 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			gasWanted += txData.GetGas()
 		}
 
-		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
+		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, shanghai, ctx.IsCheckTx())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
-		}
-
-		// If the account balance is not sufficient, try to withdraw enough staking rewards
-		err = anteutils.ClaimStakingRewardsIfNecessary(ctx, egcd.bankKeeper, egcd.distributionKeeper, egcd.stakingKeeper, from, fees)
-		if err != nil {
-			return ctx, err
 		}
 
 		err = egcd.evmKeeper.DeductTxCostsFromUserBalance(ctx, fees, common.HexToAddress(msgEthTx.From))
@@ -288,15 +283,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		}
 
 		baseFee := ctd.evmKeeper.GetBaseFee(ctx, ethCfg)
-
-		coreMsg, err := msgEthTx.AsMessage(signer, baseFee)
-		if err != nil {
-			return ctx, errorsmod.Wrapf(
-				err,
-				"failed to create an ethereum core.Message from signer %T", signer,
-			)
-		}
-
+		tx := msgEthTx.AsTransaction()
 		if evmtypes.IsLondon(ethCfg, ctx.BlockHeight()) {
 			if baseFee == nil {
 				return ctx, errorsmod.Wrap(
@@ -304,15 +291,19 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 					"base fee is supported but evm block context value is nil",
 				)
 			}
-			if coreMsg.GasFeeCap().Cmp(baseFee) < 0 {
+			if tx.GasFeeCap().Cmp(baseFee) < 0 {
 				return ctx, errorsmod.Wrapf(
 					errortypes.ErrInsufficientFee,
 					"max fee per gas less than block base fee (%s < %s)",
-					coreMsg.GasFeeCap(), baseFee,
+					tx.GasFeeCap(), baseFee,
 				)
 			}
 		}
 
+		value := tx.Value()
+		if value == nil || value.Sign() == -1 {
+			return ctx, fmt.Errorf("value (%s) must be positive", value)
+		}
 		// NOTE: pass in an empty coinbase address and nil tracer as we don't need them for the check below
 		cfg := &statedb.EVMConfig{
 			ChainConfig: ethCfg,
@@ -321,17 +312,24 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			BaseFee:     baseFee,
 		}
 
-		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes())))
+		coreMsg, err := msgEthTx.AsMessage(signer, baseFee)
+		if err != nil {
+			return ctx, errorsmod.Wrapf(
+				err,
+				"failed to create an ethereum core.Message from signer %T", signer,
+			)
+		}
+		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash())))
 		evm := ctd.evmKeeper.NewEVM(ctx, coreMsg, cfg, evmtypes.NewNoOpTracer(), stateDB)
 
 		// check that caller has enough balance to cover asset transfer for **topmost** call
 		// NOTE: here the gas consumed is from the context with the infinite gas meter
-		if coreMsg.Value().Sign() > 0 && !evm.Context.CanTransfer(stateDB, coreMsg.From(), coreMsg.Value()) {
+		if value.Sign() > 0 && !evm.Context.CanTransfer(stateDB, coreMsg.From, value) {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrInsufficientFunds,
 				"failed to transfer %s from address %s using the EVM block context transfer function",
-				coreMsg.Value(),
-				coreMsg.From(),
+				coreMsg.Value,
+				coreMsg.From,
 			)
 		}
 	}

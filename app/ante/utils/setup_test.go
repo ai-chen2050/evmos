@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -70,20 +71,22 @@ func (suite *AnteTestSuite) SetupTest() {
 		return genesis
 	})
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, ChainID: utils.TestnetChainID + "-1", Time: time.Now().UTC()})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
+	header := tmproto.Header{Height: 1, ChainID: utils.TestnetChainID + "-1", Time: time.Now().UTC()}
+	suite.ctx = suite.app.BaseApp.NewUncachedContext(checkTx, header)
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.OneInt())))
+	suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(1000000000000000000))
 	suite.app.EvmKeeper.WithChainID(suite.ctx)
 
 	// set staking denomination to Evmos denom
-	params := suite.app.StakingKeeper.GetParams(suite.ctx)
+	params, errS := suite.app.StakingKeeper.GetParams(suite.ctx)
+	suite.Require().NoError(errS)
 	params.BondDenom = utils.BaseDenom
 	suite.app.StakingKeeper.SetParams(suite.ctx, params)
 
-	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	infCtx := suite.ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	suite.app.AccountKeeper.Params.Set(infCtx, authtypes.DefaultParams())
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := encoding.MakeConfig()
 	// We're using TestMsg amino encoding in some tests, so register it here.
 	encodingConfig.Amino.RegisterConcrete(&testdata.TestMsg{}, "testdata.TestMsg", nil)
 	eip712.SetEncodingConfig(encodingConfig)

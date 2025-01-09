@@ -20,8 +20,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -44,6 +44,9 @@ var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+
+	_ appmodule.AppModule   = AppModule{}
+	_ module.HasABCIGenesis = AppModule{}
 )
 
 // app module Basics object
@@ -131,22 +134,6 @@ func (AppModule) Name() string {
 
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(&am.keeper)
-}
-
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, am.NewHandler())
-}
-
-func (am AppModule) QuerierRoute() string {
-	return types.RouterKey
-}
-
-func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), &am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
@@ -160,13 +147,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(types.ModuleName, 2, migrator.Migrate2to3); err != nil {
 		panic(fmt.Errorf("failed to migrate %s to v2: %w", types.ModuleName, err))
 	}
-}
-
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
-
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
@@ -185,15 +165,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (am AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
-func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return []simtypes.WeightedProposalContent{}
-}
-
-func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{}
-}
-
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
 }
 
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {

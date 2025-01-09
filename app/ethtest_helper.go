@@ -30,18 +30,22 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
+	"github.com/hetu-project/hetu-hub/v1/utils"
 )
 
 // EthDefaultConsensusParams defines the default Tendermint consensus params used in
 // EvmosApp testing.
-var EthDefaultConsensusParams = &abci.ConsensusParams{
-	Block: &abci.BlockParams{
+var EthDefaultConsensusParams = &tmproto.ConsensusParams{
+	Block: &tmproto.BlockParams{
 		MaxBytes: 200000,
 		MaxGas:   -1, // no limit
 	},
@@ -71,8 +75,9 @@ func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Evmos, simapp.GenesisStat
 		map[int64]bool{},
 		DefaultNodeHome,
 		5,
-		encoding.MakeConfig(ModuleBasics),
-		simapp.EmptyAppOptions{})
+		encoding.MakeConfig(),
+		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
+		baseapp.SetChainID(utils.MainnetChainID+"-1"))
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
 		genesisState := NewTestGenesisState(app.AppCodec())
@@ -87,7 +92,7 @@ func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Evmos, simapp.GenesisStat
 
 		// Initialize the chain
 		app.InitChain(
-			abci.RequestInitChain{
+			&abci.RequestInitChain{
 				ChainId:         "evmos_9000-1",
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: DefaultConsensusParams,
@@ -115,7 +120,7 @@ func NewTestGenesisState(codec codec.Codec) simapp.GenesisState {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100000000000000))),
 	}
 
 	genesisState := NewDefaultGenesisState()
@@ -136,7 +141,7 @@ func genesisStateWithValSet(codec codec.Codec, genesisState simapp.GenesisState,
 	bondAmt := sdk.DefaultPowerReduction
 
 	for _, val := range valSet.Validators {
-		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pk, err := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
 		if err != nil {
 			panic(err)
 		}
@@ -150,15 +155,15 @@ func genesisStateWithValSet(codec codec.Codec, genesisState simapp.GenesisState,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   math.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			Commission:        stakingtypes.NewCommission(math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec()),
+			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), val.Address.String(), math.LegacyOneDec()))
 	}
 	// set validators and delegations
 	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
@@ -182,7 +187,7 @@ func genesisStateWithValSet(codec codec.Codec, genesisState simapp.GenesisState,
 	})
 
 	// update total supply
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{})
+	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = codec.MustMarshalJSON(bankGenesis)
 
 	return genesisState

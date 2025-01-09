@@ -20,7 +20,6 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
 	utiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
 
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/x/evm/types"
 )
@@ -52,7 +51,7 @@ func (suite *MsgsTestSuite) SetupTest() {
 	suite.chainID = big.NewInt(1)
 	suite.hundredBigInt = big.NewInt(100)
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := encoding.MakeConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
 

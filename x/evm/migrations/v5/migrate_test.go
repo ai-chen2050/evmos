@@ -18,11 +18,10 @@ package v5_test
 import (
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	v5 "github.com/hetu-project/hetu-hub/v1/x/evm/migrations/v5"
 	v5types "github.com/hetu-project/hetu-hub/v1/x/evm/migrations/v5/types"
@@ -30,11 +29,11 @@ import (
 )
 
 func TestMigrate(t *testing.T) {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
+	encCfg := encoding.MakeConfig()
 	cdc := encCfg.Codec
 
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	storeKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 	kvStore := ctx.KVStore(storeKey)
 

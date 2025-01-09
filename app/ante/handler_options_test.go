@@ -5,7 +5,6 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/types"
 
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/app/ante"
 )
 
@@ -163,7 +162,7 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				FeegrantKeeper:         suite.app.FeeGrantKeeper,
 				IBCKeeper:              suite.app.IBCKeeper,
 				FeeMarketKeeper:        suite.app.FeeMarketKeeper,
-				SignModeHandler:        encoding.MakeConfig(app.ModuleBasics).TxConfig.SignModeHandler(),
+				SignModeHandler:        encoding.MakeConfig().TxConfig.SignModeHandler(),
 				SigGasConsumer:         ante.SigVerificationGasConsumer,
 				MaxTxGasWanted:         40000000,
 				TxFeeChecker:           ethante.NewDynamicFeeChecker(suite.app.EvmKeeper),

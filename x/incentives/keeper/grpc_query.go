@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -244,7 +245,7 @@ func (k Keeper) AllocationMeters(
 		req.Pagination,
 		func(key, value []byte) error {
 			denom := string(key)
-			var amount sdk.Dec
+			var amount math.LegacyDec
 			if err := amount.Unmarshal(value); err != nil {
 				return err
 			}

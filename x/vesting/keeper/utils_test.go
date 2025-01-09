@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), "evmos_9001-1", suite.consAddress, nil, nil,
 	)
-	suite.ctx = suite.app.BaseApp.NewContext(false, header)
+	suite.ctx = suite.app.BaseApp.NewContextLegacy(false, header)
 
 	// Setup query helpers
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	// fund signer acc to pay for tx fees
-	amt := sdk.NewInt(int64(math.Pow10(18) * 2))
+	amt := sdkmath.NewInt(int64(math.Pow10(18) * 2))
 	err = testutil.FundAccount(
 		suite.ctx,
 		suite.app.BankKeeper,
@@ -99,17 +99,18 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	// Set Validator
 	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
 	require.NoError(t, err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
-	err = suite.app.StakingKeeper.AfterValidatorCreated(suite.ctx, validator.GetOperator())
+	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, sdk.ValAddress(validator.GetOperator()))
 	require.NoError(t, err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
 	require.NoError(t, err)
-	validators := s.app.StakingKeeper.GetValidators(s.ctx, 1)
+	validators, err := s.app.StakingKeeper.GetValidators(s.ctx, 1)
+	require.NoError(t, err)
 	suite.validator = validators[0]
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := encoding.MakeConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 

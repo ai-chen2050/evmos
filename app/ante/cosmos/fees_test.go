@@ -21,9 +21,9 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		addr, priv = testutiltx.NewAccAddressAndKey()
 		// fee granter
 		fgAddr, _   = testutiltx.NewAccAddressAndKey()
-		initBalance = sdk.NewInt(1e18)
+		initBalance = math.NewInt(1e18)
 		lowGasPrice = math.NewInt(1)
-		zero        = sdk.ZeroInt()
+		zero        = math.ZeroInt()
 	)
 
 	// Testcase definitions
@@ -106,8 +106,8 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		},
 		{
 			name:        "fail - insufficient funds and insufficient staking rewards",
-			balance:     sdk.NewInt(1e5),
-			rewards:     sdk.NewInt(1e5),
+			balance:     math.NewInt(1e5),
+			rewards:     math.NewInt(1e5),
 			gas:         10_000_000,
 			checkTx:     false,
 			simulate:    false,
@@ -116,13 +116,13 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			postCheck: func() {
 				// the balance should not have changed
 				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, utils.BaseDenom)
-				suite.Require().Equal(sdk.NewInt(1e5), balance.Amount, "expected balance to be unchanged")
+				suite.Require().Equal(math.NewInt(1e5), balance.Amount, "expected balance to be unchanged")
 
 				// the rewards should not have changed
 				rewards, err := testutil.GetTotalDelegationRewards(suite.ctx, suite.app.DistrKeeper, addr)
 				suite.Require().NoError(err, "failed to get total delegation rewards")
 				suite.Require().Equal(
-					sdk.NewDecCoins(sdk.NewDecCoin(utils.BaseDenom, sdk.NewInt(1e5))),
+					sdk.NewDecCoins(sdk.NewDecCoin(utils.BaseDenom, math.NewInt(1e5))),
 					rewards,
 					"expected rewards to be unchanged")
 			},
@@ -140,7 +140,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			malleate: func() {
 				suite.ctx = suite.ctx.WithMinGasPrices(
 					sdk.NewDecCoins(
-						sdk.NewDecCoin(utils.BaseDenom, sdk.NewInt(10_000)),
+						sdk.NewDecCoin(utils.BaseDenom, math.NewInt(10_000)),
 					),
 				)
 			},
@@ -175,7 +175,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			malleate: func() {
 				suite.ctx = suite.ctx.WithMinGasPrices(
 					sdk.NewDecCoins(
-						sdk.NewDecCoin(utils.BaseDenom, sdk.NewInt(100)),
+						sdk.NewDecCoin(utils.BaseDenom, math.NewInt(100)),
 					),
 				)
 			},

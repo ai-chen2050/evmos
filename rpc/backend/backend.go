@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -31,6 +32,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
+	ethmath "github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	rpctypes "github.com/hetu-project/hetu-hub/v1/rpc/types"
 	"github.com/hetu-project/hetu-hub/v1/server/config"
@@ -105,12 +107,12 @@ type EVMBackend interface {
 	// Chain Info
 	ChainID() (*hexutil.Big, error)
 	ChainConfig() *params.ChainConfig
-	GlobalMinGasPrice() (sdk.Dec, error)
+	GlobalMinGasPrice() (math.LegacyDec, error)
 	BaseFee(blockRes *tmrpctypes.ResultBlockResults) (*big.Int, error)
 	CurrentHeader() *ethtypes.Header
 	PendingTransactions() ([]*sdk.Tx, error)
 	GetCoinbase() (sdk.AccAddress, error)
-	FeeHistory(blockCount rpc.DecimalOrHex, lastBlock rpc.BlockNumber, rewardPercentiles []float64) (*rpctypes.FeeHistoryResult, error)
+	FeeHistory(blockCount ethmath.HexOrDecimal64, lastBlock rpc.BlockNumber, rewardPercentiles []float64) (*rpctypes.FeeHistoryResult, error)
 	SuggestGasTipCap(baseFee *big.Int) (*big.Int, error)
 
 	// Tx Info

@@ -7,7 +7,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	erc20keeper "github.com/hetu-project/hetu-hub/v1/x/erc20/keeper"
 	v3types "github.com/hetu-project/hetu-hub/v1/x/erc20/migrations/v3/types"
@@ -29,14 +28,14 @@ func (ms mockSubspace) GetParamSet(_ sdk.Context, ps types.LegacyParams) {
 }
 
 func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Subspace {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
+	encCfg := encoding.MakeConfig()
 	cdc := encCfg.Codec
 	return paramtypes.NewSubspace(cdc, encCfg.Amino, ms.storeKey, ms.transientKey, "test").WithKeyTable(keyTable)
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	storeKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 
 	var outputParams v3types.V3Params
@@ -46,7 +45,7 @@ func (suite *KeeperTestSuite) TestMigrations() {
 	legacySubspace.GetParamSetIfExists(ctx, &outputParams)
 
 	// Added dummy keeper in order to use the test store and store key
-	mockKeeper := erc20keeper.NewKeeper(storeKey, nil, authtypes.NewModuleAddress(govtypes.ModuleName), nil, nil, nil, nil, nil)
+	mockKeeper := erc20keeper.NewKeeper(storeKey, nil, authtypes.NewModuleAddress(govtypes.ModuleName), nil, nil, nil, nil)
 	mockSubspace := newMockSubspace(v3types.DefaultParams(), storeKey, tKey)
 	migrator := erc20keeper.NewMigrator(mockKeeper, mockSubspace)
 

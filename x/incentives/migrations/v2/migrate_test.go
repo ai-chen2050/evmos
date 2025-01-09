@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hetu-project/hetu-hub/v1/app"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	v2 "github.com/hetu-project/hetu-hub/v1/x/incentives/migrations/v2"
 	v2types "github.com/hetu-project/hetu-hub/v1/x/incentives/migrations/v2/types"
@@ -31,16 +30,16 @@ func (ms mockSubspace) GetParamSetIfExists(_ sdk.Context, ps types.LegacyParams)
 }
 
 func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Subspace {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
+	encCfg := encoding.MakeConfig()
 	cdc := encCfg.Codec
 	return paramtypes.NewSubspace(cdc, encCfg.Amino, ms.storeKey, ms.transientKey, "test").WithKeyTable(keyTable)
 }
 
 func TestMigrate(t *testing.T) {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
+	encCfg := encoding.MakeConfig()
 	cdc := encCfg.Codec
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	storeKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 	kvStore := ctx.KVStore(storeKey)
 

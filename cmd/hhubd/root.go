@@ -21,10 +21,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"cosmossdk.io/log"
 	tmcfg "github.com/cometbft/cometbft/config"
@@ -35,22 +37,28 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
+	clientcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 
-	// "github.com/cosmos/cosmos-sdk/snapshots"
-	// snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
+	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
+	storetypes "cosmossdk.io/store/types"
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	rosettaCmd "github.com/cosmos/rosetta/cmd"
 
 	evmosclient "github.com/hetu-project/hetu-hub/v1/client"
 	"github.com/hetu-project/hetu-hub/v1/client/debug"
@@ -63,6 +71,8 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/app"
 	cmdcfg "github.com/hetu-project/hetu-hub/v1/cmd/config"
 	evmoskr "github.com/hetu-project/hetu-hub/v1/crypto/keyring"
+	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
+	"github.com/hetu-project/hetu-hub/v1/utils"
 )
 
 const (
@@ -71,8 +81,19 @@ const (
 
 // NewRootCmd creates a new root command for hhubd. It is called once in the
 // main function.
-func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+func NewRootCmd() (*cobra.Command, evmostypes.EncodingConfig) {
+	tempApp := app.NewEvmos(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil, true, nil,
+		tempDir(app.DefaultNodeHome),
+		0,
+		encoding.MakeConfig(),
+		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
+		baseapp.SetChainID(utils.MainnetChainID+"-1"),
+	)
+
+	encodingConfig := tempApp.EncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -80,12 +101,16 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithBroadcastMode(flags.BroadcastBlock).
+		WithBroadcastMode(flags.FlagBroadcastMode).
 		WithHomeDir(app.DefaultNodeHome).
 		WithKeyringOptions(evmoskr.Option()).
 		WithViper(EnvPrefix).
 		WithLedgerHasProtobuf(true)
 
+	initClientCtx, err := clientcfg.ReadDefaultValuesFromDefaultClientConfig(initClientCtx)
+	if err != nil {
+		panic(err)
+	}
 	eip712.SetEncodingConfig(encodingConfig)
 
 	rootCmd := &cobra.Command{
@@ -124,18 +149,25 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	a := appCreator{encodingConfig}
 	rootCmd.AddCommand(
 		evmosclient.ValidateChainID(
-			InitCmd(app.ModuleBasics, app.DefaultNodeHome),
+			InitCmd(tempApp.BasicModuleManager, app.DefaultNodeHome),
 		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{},
+			app.DefaultNodeHome,
+			genutiltypes.DefaultMessageValidator,
+			tempApp.GetTxConfig().SigningContext().ValidatorAddressCodec()),
 		MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.GenTxCmd(
+			tempApp.BasicModuleManager, tempApp.GetTxConfig(),
+			banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome,
+			tempApp.GetTxConfig().SigningContext().ValidatorAddressCodec(),
+		),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		NewTestnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(a.newApp),
+		confixcmd.ConfigCommand(),
+		pruning.Cmd(a.newApp, app.DefaultNodeHome),
 		snapshot.Cmd(a.newApp),
 	)
 
@@ -148,18 +180,18 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		sdkserver.StatusCommand(),
 		queryCommand(),
 		txCommand(),
 		evmosclient.KeyCommands(app.DefaultNodeHome),
 	)
-	rootCmd, err := srvflags.AddTxFlags(rootCmd)
+	rootCmd, err = srvflags.AddTxFlags(rootCmd)
 	if err != nil {
 		panic(err)
 	}
 
 	// add rosetta
-	rootCmd.AddCommand(sdkserver.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
+	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 
 	return rootCmd, encodingConfig
 }
@@ -179,11 +211,12 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		rpc.QueryEventForTxCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
+		sdkserver.QueryBlockCmd(),
+		sdkserver.QueryBlockResultsCmd(),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -210,7 +243,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
+		authcmd.GetSimulateCmd(),
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)
@@ -237,12 +270,12 @@ func initAppConfig() (string, interface{}) {
 }
 
 type appCreator struct {
-	encCfg params.EncodingConfig
+	encCfg evmostypes.EncodingConfig
 }
 
 // newApp is an appCreator
 func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(sdkserver.FlagInterBlockCache)) {
 		cache = store.NewCommitKVStoreCacheManager()
@@ -258,21 +291,38 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		panic(err)
 	}
 
-	// snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	// snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	home := cast.ToString(appOpts.Get(flags.FlagHome))
+	snapshotDir := filepath.Join(home, "data", "snapshots")
+	snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
+	if err != nil {
+		panic(err)
+	}
 
-	// snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
+	if err != nil {
+		panic(err)
+	}
 
-	// snapshotOptions := snapshottypes.NewSnapshotOptions(
-	// 	cast.ToUint64(appOpts.Get(sdkserver.FlagStateSyncSnapshotInterval)),
-	// 	cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent)),
-	// )
+	snapshotOptions := snapshottypes.NewSnapshotOptions(
+		cast.ToUint64(appOpts.Get(sdkserver.FlagStateSyncSnapshotInterval)),
+		cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent)),
+	)
+
+	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
+	if len(chainID) == 0 {
+		v := viper.New()
+		v.AddConfigPath(filepath.Join(home, "config"))
+		v.SetConfigName("client")
+		v.SetConfigType("toml")
+		if err := v.ReadInConfig(); err != nil {
+			panic(err)
+		}
+		conf := new(clientcfg.ClientConfig)
+		if err := v.Unmarshal(conf); err != nil {
+			panic(err)
+		}
+		chainID = conf.ChainID
+	}
 
 	evmosApp := app.NewEvmos(
 		logger, db, traceStore, true, skipUpgradeHeights,
@@ -299,8 +349,9 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 // appExport creates a new simapp (optionally at a given height)
 // and exports state.
 func (a appCreator) appExport(
-	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions,
+	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64,
+	forZeroHeight bool, jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions, modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	var evmosApp *app.Evmos
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
@@ -318,7 +369,7 @@ func (a appCreator) appExport(
 		evmosApp = app.NewEvmos(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
 	}
 
-	return evmosApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return evmosApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
 // initTendermintConfig helps to override default Tendermint Config values.
@@ -326,12 +377,20 @@ func (a appCreator) appExport(
 func initTendermintConfig() *tmcfg.Config {
 	cfg := tmcfg.DefaultConfig()
 	cfg.Consensus.TimeoutCommit = time.Second * 3
-	// use v0 since v1 severely impacts the node's performance
-	cfg.Mempool.Version = tmcfg.MempoolV0
 
 	// to put a higher strain on node memory, use these values:
 	// cfg.P2P.MaxNumInboundPeers = 100
 	// cfg.P2P.MaxNumOutboundPeers = 40
 
 	return cfg
+}
+
+func tempDir(defaultHome string) string {
+	dir, err := os.MkdirTemp("", "hhub")
+	if err != nil {
+		dir = defaultHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }

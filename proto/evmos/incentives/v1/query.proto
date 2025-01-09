@@ -123,7 +123,7 @@ message QueryAllocationMetersRequest {
 message QueryAllocationMetersResponse {
   // allocation_meters is a slice of all allocations
   repeated cosmos.base.v1beta1.DecCoin allocation_meters = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"];
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDecCoins"];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -140,7 +140,7 @@ message QueryAllocationMeterRequest {
 message QueryAllocationMeterResponse {
   // allocation_meter defines the allocation of the queried denom
   cosmos.base.v1beta1.DecCoin allocation_meter = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"];
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDecCoins"];
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.

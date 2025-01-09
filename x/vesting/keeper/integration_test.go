@@ -43,19 +43,19 @@ var err error
 var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 	// Monthly vesting period
 	stakeDenom := utils.BaseDenom
-	amt := sdk.NewInt(1e17)
+	amt := math.NewInt(1e17)
 	vestingLength := int64(60 * 60 * 24 * 30) // in seconds
 	vestingAmt := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt))
 	vestingPeriod := sdkvesting.Period{Length: vestingLength, Amount: vestingAmt}
 
 	// 4 years vesting total
 	periodsTotal := int64(48)
-	vestingAmtTotal := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(periodsTotal))))
+	vestingAmtTotal := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(periodsTotal))))
 
 	// 6 month cliff
 	cliff := int64(6)
 	cliffLength := vestingLength * cliff
-	cliffAmt := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(cliff))))
+	cliffAmt := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(cliff))))
 	cliffPeriod := sdkvesting.Period{Length: cliffLength, Amount: cliffAmt}
 
 	// 12 month lockup
@@ -149,7 +149,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 			// Ensure no tokens are vested
 			vested := clawbackAccount.GetVestedOnly(s.ctx.BlockTime())
 			unlocked := clawbackAccount.GetUnlockedOnly(s.ctx.BlockTime())
-			zeroCoins := sdk.NewCoins(sdk.NewCoin(stakeDenom, sdk.ZeroInt()))
+			zeroCoins := sdk.NewCoins(sdk.NewCoin(stakeDenom, math.ZeroInt()))
 			s.Require().Equal(zeroCoins, vested)
 			s.Require().Equal(zeroCoins, unlocked)
 		})
@@ -215,7 +215,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 
 			// Check if some, but not all tokens are vested
 			vested = clawbackAccount.GetVestedOnly(s.ctx.BlockTime())
-			expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(cliff))))
+			expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(cliff))))
 			s.Require().NotEqual(vestingAmtTotal, vested)
 			s.Require().Equal(expVested, vested)
 		})
@@ -273,7 +273,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 			for _, account := range testAccounts {
 				vested := account.clawbackAccount.GetVestedOnly(s.ctx.BlockTime())
 				unlocked := account.clawbackAccount.GetUnlockedOnly(s.ctx.BlockTime())
-				expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(lockup))))
+				expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(lockup))))
 
 				s.Require().NotEqual(vestingAmtTotal, vested)
 				s.Require().Equal(expVested, vested)
@@ -400,7 +400,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 			txAmount := vestingAmtTotal.AmountOf(stakeDenom).BigInt()
 
 			// Fund a normal account to try to short-circuit the AnteHandler
-			err = testutil.FundAccount(s.ctx, s.app.BankKeeper, address, vestingAmtTotal.MulInt(sdk.NewInt(2)))
+			err = testutil.FundAccount(s.ctx, s.app.BankKeeper, address, vestingAmtTotal.MulInt(math.NewInt(2)))
 			Expect(err).To(BeNil())
 			normalAccMsg, err := utiltx.CreateEthTx(s.ctx, s.app, privKey, address, dest, txAmount, 0)
 			Expect(err).To(BeNil())
@@ -422,7 +422,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 			s.CommitAfter(vestDuration * time.Second)
 
 			vested = clawbackAccount.GetVestedOnly(s.ctx.BlockTime())
-			expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(lockup+1))))
+			expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(lockup+1))))
 
 			unlocked := clawbackAccount.GetUnlockedOnly(s.ctx.BlockTime())
 			expUnlocked := unlockedPerLockup
@@ -461,7 +461,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 			// Check if some, but not all tokens are vested
 			unvested = clawbackAccount.GetUnvestedOnly(s.ctx.BlockTime())
 			vested = clawbackAccount.GetVestedOnly(s.ctx.BlockTime())
-			expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(lockup*numLockupPeriods))))
+			expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(lockup*numLockupPeriods))))
 			s.Require().NotEqual(vestingAmtTotal, vested)
 			s.Require().Equal(expVested, vested)
 		})
@@ -518,7 +518,7 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 			vested = clawbackAccount.GetVestedOnly(s.ctx.BlockTime())
 			locked := clawbackAccount.LockedCoins(s.ctx.BlockTime())
 
-			zeroCoins := sdk.NewCoins(sdk.NewCoin(stakeDenom, sdk.ZeroInt()))
+			zeroCoins := sdk.NewCoins(sdk.NewCoin(stakeDenom, math.ZeroInt()))
 			s.Require().Equal(vestingAmtTotal, vested)
 			s.Require().Equal(zeroCoins, locked)
 			s.Require().Equal(zeroCoins, unvested)
@@ -569,20 +569,20 @@ var _ = Describe("Clawback Vesting Accounts", Ordered, func() {
 var _ = Describe("Clawback Vesting Accounts - claw back tokens", Ordered, func() {
 	// Monthly vesting period
 	stakeDenom := utils.BaseDenom
-	amt := sdk.NewInt(1)
+	amt := math.NewInt(1)
 	vestingLength := int64(60 * 60 * 24 * 30) // in seconds
 	vestingAmt := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt))
 	vestingPeriod := sdkvesting.Period{Length: vestingLength, Amount: vestingAmt}
 
 	// 4 years vesting total
 	periodsTotal := int64(48)
-	vestingTotal := amt.Mul(sdk.NewInt(periodsTotal))
+	vestingTotal := amt.Mul(math.NewInt(periodsTotal))
 	vestingAmtTotal := sdk.NewCoins(sdk.NewCoin(stakeDenom, vestingTotal))
 
 	// 6 month cliff
 	cliff := int64(6)
 	cliffLength := vestingLength * cliff
-	cliffAmt := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(sdk.NewInt(cliff))))
+	cliffAmt := sdk.NewCoins(sdk.NewCoin(stakeDenom, amt.Mul(math.NewInt(cliff))))
 	cliffPeriod := sdkvesting.Period{Length: cliffLength, Amount: cliffAmt}
 
 	// 12 month lockup
@@ -681,11 +681,11 @@ var _ = Describe("Clawback Vesting Accounts - claw back tokens", Ordered, func()
 		unlocked = clawbackAccount.GetUnlockedOnly(s.ctx.BlockTime())
 		free = clawbackAccount.GetVestedCoins(s.ctx.BlockTime())
 		vesting = clawbackAccount.GetVestingCoins(s.ctx.BlockTime())
-		expVestedAmount := amt.Mul(sdk.NewInt(cliff))
+		expVestedAmount := amt.Mul(math.NewInt(cliff))
 		expVested := sdk.NewCoins(sdk.NewCoin(stakeDenom, expVestedAmount))
 
 		s.Require().Equal(expVested, vested)
-		s.Require().True(expVestedAmount.GT(sdk.NewInt(0)))
+		s.Require().True(expVestedAmount.GT(math.NewInt(0)))
 		s.Require().True(free.IsZero())
 		s.Require().Equal(vesting, vestingAmtTotal)
 
@@ -733,7 +733,7 @@ var _ = Describe("Clawback Vesting Accounts - claw back tokens", Ordered, func()
 
 		s.Require().Equal(free, vested)
 		s.Require().Equal(expVested, vested)
-		s.Require().True(expVestedAmount.GT(sdk.NewInt(0)))
+		s.Require().True(expVestedAmount.GT(math.NewInt(0)))
 		s.Require().Equal(vesting, unvested)
 
 		balanceFunder := s.app.BankKeeper.GetBalance(s.ctx, funder, stakeDenom)
@@ -876,19 +876,19 @@ var _ = Describe("Clawback Vesting Account - Barberry bug", func() {
 		// coinsNoNegAmount is a Coins struct with a positive and a negative amount of the same
 		// denomination.
 		coinsNoNegAmount = sdk.Coins{
-			sdk.Coin{Denom: utils.BaseDenom, Amount: sdk.NewInt(1e18)},
+			sdk.Coin{Denom: utils.BaseDenom, Amount: math.NewInt(1e18)},
 		}
 		// coinsWithNegAmount is a Coins struct with a positive and a negative amount of the same
 		// denomination.
 		coinsWithNegAmount = sdk.Coins{
-			sdk.Coin{Denom: utils.BaseDenom, Amount: sdk.NewInt(1e18)},
-			sdk.Coin{Denom: utils.BaseDenom, Amount: sdk.NewInt(-1e18)},
+			sdk.Coin{Denom: utils.BaseDenom, Amount: math.NewInt(1e18)},
+			sdk.Coin{Denom: utils.BaseDenom, Amount: math.NewInt(-1e18)},
 		}
 		// coinsWithZeroAmount is a Coins struct with a positive and a zero amount of the same
 		// denomination.
 		coinsWithZeroAmount = sdk.Coins{
-			sdk.Coin{Denom: utils.BaseDenom, Amount: sdk.NewInt(1e18)},
-			sdk.Coin{Denom: utils.BaseDenom, Amount: sdk.NewInt(0)},
+			sdk.Coin{Denom: utils.BaseDenom, Amount: math.NewInt(1e18)},
+			sdk.Coin{Denom: utils.BaseDenom, Amount: math.NewInt(0)},
 		}
 		// emptyCoins is an Coins struct
 		emptyCoins = sdk.Coins{}

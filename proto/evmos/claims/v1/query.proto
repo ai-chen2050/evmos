@@ -79,7 +79,7 @@ message QueryClaimsRecordRequest {
 message QueryClaimsRecordResponse {
   // initial_claimable_amount of the user
   string initial_claimable_amount = 1
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+      [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
   // claims of the user
   repeated Claim claims = 2 [(gogoproto.nullable) = false];
 }
