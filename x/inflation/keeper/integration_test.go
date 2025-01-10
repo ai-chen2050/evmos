@@ -4,14 +4,12 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	epochstypes "github.com/hetu-project/hetu-hub/v1/x/epochs/types"
-	incentivestypes "github.com/hetu-project/hetu-hub/v1/x/incentives/types"
+	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 )
 
 var (
@@ -26,8 +24,7 @@ var _ = Describe("Inflation", Ordered, func() {
 	})
 
 	Describe("Committing a block", func() {
-		addr := s.app.AccountKeeper.GetModuleAddress(incentivestypes.ModuleName)
-
+		addr := s.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 		Context("with inflation param enabled and exponential calculation params changed", func() {
 			BeforeEach(func() {
 				params := s.app.InflationKeeper.GetParams(s.ctx)
@@ -49,12 +46,14 @@ var _ = Describe("Inflation", Ordered, func() {
 				})
 
 				It("should not allocate funds to usage incentives", func() {
+
 					balance := s.app.BankKeeper.GetBalance(s.ctx, addr, denomMint)
 					Expect(balance.IsZero()).To(BeTrue())
 				})
 				It("should not allocate funds to the community pool", func() {
-					balance := s.app.DistrKeeper.GetFeePoolCommunityCoins(s.ctx)
-					Expect(balance.IsZero()).To(BeTrue())
+					balanceCommunityPool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+					Expect(err).To(BeNil())
+					Expect(balanceCommunityPool.CommunityPool.IsZero()).To(BeTrue())
 				})
 			})
 
@@ -77,15 +76,15 @@ var _ = Describe("Inflation", Ordered, func() {
 				})
 
 				It("should allocate funds to the community pool", func() {
-					balanceCommunityPool := s.app.DistrKeeper.GetFeePoolCommunityCoins(s.ctx)
-
+					balanceCommunityPool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+					Expect(err).To(BeNil())
 					provision := s.app.InflationKeeper.GetEpochMintProvision(s.ctx)
 					params := s.app.InflationKeeper.GetParams(s.ctx)
 					distribution := params.InflationDistribution.CommunityPool
 					expected := provision.Mul(distribution)
 
-					Expect(balanceCommunityPool.IsZero()).ToNot(BeTrue())
-					Expect(balanceCommunityPool.AmountOf(denomMint).GT(expected)).To(BeTrue())
+					Expect(balanceCommunityPool.GetCommunityPool().IsZero()).ToNot(BeTrue())
+					Expect(balanceCommunityPool.GetCommunityPool().AmountOf(denomMint).GT(expected)).To(BeTrue())
 				})
 			})
 		})
@@ -114,8 +113,9 @@ var _ = Describe("Inflation", Ordered, func() {
 				})
 
 				It("should not allocate funds to the community pool", func() {
-					balance := s.app.DistrKeeper.GetFeePoolCommunityCoins(s.ctx)
-					Expect(balance.IsZero()).To(BeTrue())
+					balanceCommunityPool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+					Expect(err).To(BeNil())
+					Expect(balanceCommunityPool.CommunityPool.IsZero()).To(BeTrue())
 				})
 			})
 
@@ -138,15 +138,16 @@ var _ = Describe("Inflation", Ordered, func() {
 				})
 
 				It("should allocate funds to the community pool", func() {
-					balanceCommunityPool := s.app.DistrKeeper.GetFeePoolCommunityCoins(s.ctx)
+					balanceCommunityPool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+					Expect(err).To(BeNil())
 
 					provision := s.app.InflationKeeper.GetEpochMintProvision(s.ctx)
 					params := s.app.InflationKeeper.GetParams(s.ctx)
 					distribution := params.InflationDistribution.CommunityPool
 					expected := provision.Mul(distribution)
 
-					Expect(balanceCommunityPool.IsZero()).ToNot(BeTrue())
-					Expect(balanceCommunityPool.AmountOf(denomMint).GT(expected)).To(BeTrue())
+					Expect(balanceCommunityPool.CommunityPool.IsZero()).ToNot(BeTrue())
+					Expect(balanceCommunityPool.CommunityPool.AmountOf(denomMint).GT(expected)).To(BeTrue())
 				})
 			})
 		})
@@ -169,8 +170,9 @@ var _ = Describe("Inflation", Ordered, func() {
 					Expect(balance.IsZero()).To(BeTrue())
 				})
 				It("should not allocate funds to the community pool", func() {
-					balance := s.app.DistrKeeper.GetFeePoolCommunityCoins(s.ctx)
-					Expect(balance.IsZero()).To(BeTrue())
+					balanceCommunityPool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+					Expect(err).To(BeNil())
+					Expect(balanceCommunityPool.CommunityPool.IsZero()).To(BeTrue())
 				})
 			})
 
@@ -192,15 +194,16 @@ var _ = Describe("Inflation", Ordered, func() {
 					Expect(actual.Amount).To(Equal(expected))
 				})
 				It("should allocate funds to the community pool", func() {
-					balanceCommunityPool := s.app.DistrKeeper.GetFeePoolCommunityCoins(s.ctx)
+					balanceCommunityPool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+					Expect(err).To(BeNil())
 
 					provision := s.app.InflationKeeper.GetEpochMintProvision(s.ctx)
 					params := s.app.InflationKeeper.GetParams(s.ctx)
 					distribution := params.InflationDistribution.CommunityPool
 					expected := provision.Mul(distribution)
 
-					Expect(balanceCommunityPool.IsZero()).ToNot(BeTrue())
-					Expect(balanceCommunityPool.AmountOf(denomMint).GT(expected)).To(BeTrue())
+					Expect(balanceCommunityPool.CommunityPool.IsZero()).ToNot(BeTrue())
+					Expect(balanceCommunityPool.CommunityPool.AmountOf(denomMint).GT(expected)).To(BeTrue())
 				})
 			})
 		})
@@ -295,7 +298,7 @@ var _ = Describe("Inflation", Ordered, func() {
 						It("should recalculate the EpochMintProvision", func() {
 							provisionAfter := s.app.InflationKeeper.GetEpochMintProvision(s.ctx)
 							Expect(provisionAfter).ToNot(Equal(provision))
-							Expect(provisionAfter).To(Equal(sdk.MustNewDecFromStr("159375000000000000000000000")))
+							Expect(provisionAfter).To(Equal(math.LegacyMustNewDecFromStr("159375000000000000000000000")))
 						})
 					})
 				})

@@ -6,8 +6,6 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type InflationTestSuite struct {
@@ -36,7 +34,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			DefaultParams(),
 			uint64(0),
 			math.LegacyOneDec(),
-			sdk.MustNewDecFromStr("847602739726027397260274.000000000000000000"),
+			math.LegacyMustNewDecFromStr("847602739726027397260274.000000000000000000"),
 			true,
 		},
 		{
@@ -44,7 +42,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			DefaultParams(),
 			uint64(1),
 			math.LegacyOneDec(),
-			sdk.MustNewDecFromStr("436643835616438356164384.000000000000000000"),
+			math.LegacyMustNewDecFromStr("436643835616438356164384.000000000000000000"),
 			true,
 		},
 		{
@@ -52,7 +50,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			DefaultParams(),
 			uint64(2),
 			math.LegacyOneDec(),
-			sdk.MustNewDecFromStr("231164383561643835616438.000000000000000000"),
+			math.LegacyMustNewDecFromStr("231164383561643835616438.000000000000000000"),
 			true,
 		},
 		{
@@ -60,7 +58,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			DefaultParams(),
 			uint64(3),
 			math.LegacyOneDec(),
-			sdk.MustNewDecFromStr("128424657534246575342466.000000000000000000"),
+			math.LegacyMustNewDecFromStr("128424657534246575342466.000000000000000000"),
 			true,
 		},
 		{
@@ -68,7 +66,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			DefaultParams(),
 			uint64(20),
 			math.LegacyOneDec(),
-			sdk.MustNewDecFromStr("25685715348753210410959.000000000000000000"),
+			math.LegacyMustNewDecFromStr("25685715348753210410959.000000000000000000"),
 			true,
 		},
 		{
@@ -76,7 +74,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			DefaultParams(),
 			uint64(21),
 			math.LegacyOneDec(),
-			sdk.MustNewDecFromStr("25685323427801262739726.000000000000000000"),
+			math.LegacyMustNewDecFromStr("25685323427801262739726.000000000000000000"),
 			true,
 		},
 		{
@@ -84,7 +82,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			bondingParams,
 			uint64(0),
 			math.LegacyZeroDec(),
-			sdk.MustNewDecFromStr("1186643835616438356164384.000000000000000000"),
+			math.LegacyMustNewDecFromStr("1186643835616438356164384.000000000000000000"),
 			true,
 		},
 		{
@@ -92,7 +90,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			bondingParams,
 			uint64(1),
 			math.LegacyZeroDec(),
-			sdk.MustNewDecFromStr("611301369863013698630137.000000000000000000"),
+			math.LegacyMustNewDecFromStr("611301369863013698630137.000000000000000000"),
 			true,
 		},
 		{
@@ -100,7 +98,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			bondingParams,
 			uint64(2),
 			math.LegacyZeroDec(),
-			sdk.MustNewDecFromStr("323630136986301369863014.000000000000000000"),
+			math.LegacyMustNewDecFromStr("323630136986301369863014.000000000000000000"),
 			true,
 		},
 		{
@@ -108,7 +106,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			bondingParams,
 			uint64(3),
 			math.LegacyZeroDec(),
-			sdk.MustNewDecFromStr("179794520547945205479452.000000000000000000"),
+			math.LegacyMustNewDecFromStr("179794520547945205479452.000000000000000000"),
 			true,
 		},
 		{
@@ -116,7 +114,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			bondingParams,
 			uint64(20),
 			math.LegacyZeroDec(),
-			sdk.MustNewDecFromStr("35960001488254494575342.000000000000000000"),
+			math.LegacyMustNewDecFromStr("35960001488254494575342.000000000000000000"),
 			true,
 		},
 		{
@@ -124,7 +122,7 @@ func (suite *InflationTestSuite) TestCalculateEpochMintProvision() {
 			bondingParams,
 			uint64(21),
 			math.LegacyZeroDec(),
-			sdk.MustNewDecFromStr("35959452798921767835616.000000000000000000"),
+			math.LegacyMustNewDecFromStr("35959452798921767835616.000000000000000000"),
 			true,
 		},
 	}

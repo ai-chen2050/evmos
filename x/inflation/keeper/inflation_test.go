@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
-	incentivestypes "github.com/hetu-project/hetu-hub/v1/x/incentives/types"
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 )
 
@@ -63,20 +62,12 @@ func (suite *KeeperTestSuite) TestMintAndAllocateInflation() {
 				denomMint,
 			)
 
-			incentives := suite.app.AccountKeeper.GetModuleAddress(incentivestypes.ModuleName)
-			balanceUsageIncentives := suite.app.BankKeeper.GetBalance(
-				suite.ctx,
-				incentives,
-				denomMint,
-			)
-
-			balanceCommunityPool := suite.app.DistrKeeper.GetFeePoolCommunityCoins(suite.ctx)
-
+			balanceCommunityPool, err := suite.app.DistrKeeper.FeePool.Get(suite.ctx)
+			suite.Require().Error(err)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().True(balanceModule.IsZero())
 				suite.Require().Equal(tc.expStakingRewardAmt, balanceStakingRewards)
-				suite.Require().Equal(tc.expUsageIncentivesAmt, balanceUsageIncentives)
 				suite.Require().Equal(tc.expCommunityPoolAmt, balanceCommunityPool)
 			} else {
 				suite.Require().Error(err)
@@ -108,13 +99,13 @@ func (suite *KeeperTestSuite) TestGetCirculatingSupplyAndInflationRate() {
 			"high supply",
 			sdk.TokensFromConsensusPower(800_000_000, evmostypes.PowerReduction).Sub(bondedAmt),
 			func() {},
-			sdk.MustNewDecFromStr("51.562500000000000000"),
+			math.LegacyMustNewDecFromStr("51.562500000000000000"),
 		},
 		{
 			"low supply",
 			sdk.TokensFromConsensusPower(400_000_000, evmostypes.PowerReduction).Sub(bondedAmt),
 			func() {},
-			sdk.MustNewDecFromStr("154.687500000000000000"),
+			math.LegacyMustNewDecFromStr("154.687500000000000000"),
 		},
 		{
 			"zero circulating supply",
@@ -171,7 +162,7 @@ func (suite *KeeperTestSuite) TestBondedRatio() {
 			"not mainnet",
 			false,
 			func() {},
-			sdk.MustNewDecFromStr("0.999900009999000099"),
+			math.LegacyMustNewDecFromStr("0.999900009999000099"),
 		},
 	}
 	for _, tc := range testCases {

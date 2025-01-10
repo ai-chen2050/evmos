@@ -23,7 +23,6 @@ import (
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 
 	utils "github.com/hetu-project/hetu-hub/v1/utils"
-	incentivestypes "github.com/hetu-project/hetu-hub/v1/x/incentives/types"
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 )
 
@@ -94,7 +93,7 @@ func (k Keeper) AllocateExponentialInflation(
 	if err = k.bankKeeper.SendCoinsFromModuleToModule(
 		ctx,
 		types.ModuleName,
-		incentivestypes.ModuleName,
+		k.feeCollectorName,
 		incentives,
 	); err != nil {
 		return nil, nil, nil, err
@@ -126,14 +125,17 @@ func (k Keeper) GetProportions(
 ) sdk.Coin {
 	return sdk.Coin{
 		Denom:  coin.Denom,
-		Amount: sdkmath.LegacyNewDecFromInt(coin.Amount).Mul(distribution).TruncateInt(),
+		Amount: math.LegacyNewDecFromInt(coin.Amount).Mul(distribution).TruncateInt(),
 	}
 }
 
 // BondedRatio the fraction of the staking tokens which are currently bonded
 // It doesn't consider team allocation for inflation
 func (k Keeper) BondedRatio(ctx sdk.Context) math.LegacyDec {
-	stakeSupply := k.stakingKeeper.StakingTokenSupply(ctx)
+	stakeSupply, err := k.stakingKeeper.StakingTokenSupply(ctx)
+	if err != nil {
+		return math.LegacyZeroDec()
+	}
 
 	isMainnet := utils.IsMainnet(ctx.ChainID())
 
@@ -146,14 +148,19 @@ func (k Keeper) BondedRatio(ctx sdk.Context) math.LegacyDec {
 		stakeSupply = stakeSupply.Sub(teamAlloc)
 	}
 
-	return sdkmath.LegacyNewDecFromInt(k.stakingKeeper.TotalBondedTokens(ctx)).QuoInt(stakeSupply)
+	totalBondedTokens, err := k.stakingKeeper.TotalBondedTokens(ctx)
+	if err != nil {
+		return math.LegacyZeroDec()
+	}
+
+	return math.LegacyNewDecFromInt(totalBondedTokens).QuoInt(stakeSupply)
 }
 
 // GetCirculatingSupply returns the bank supply of the mintDenom excluding the
 // team allocation in the first year
 func (k Keeper) GetCirculatingSupply(ctx sdk.Context, mintDenom string) math.LegacyDec {
-	circulatingSupply := sdkmath.LegacyNewDecFromInt(k.bankKeeper.GetSupply(ctx, mintDenom).Amount)
-	teamAllocation := sdkmath.LegacyNewDecFromInt(teamAlloc)
+	circulatingSupply := math.LegacyNewDecFromInt(k.bankKeeper.GetSupply(ctx, mintDenom).Amount)
+	teamAllocation := math.LegacyNewDecFromInt(teamAlloc)
 
 	// Consider team allocation only on mainnet chain id
 	if utils.IsMainnet(ctx.ChainID()) {

@@ -19,9 +19,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 	epochstypes "github.com/hetu-project/hetu-hub/v1/x/epochs/types"
 	"github.com/hetu-project/hetu-hub/v1/x/inflation/types"
 )

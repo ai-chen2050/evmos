@@ -222,7 +222,7 @@ func delegate(clawbackAccount *types.ClawbackVestingAccount, amount sdkmath.Int)
 
 	val, err := sdk.ValAddressFromBech32("hhubvaloper1z3t55m0l9h0eupuz3dp5t5cypyv674jjfcsegw")
 	s.Require().NoError(err)
-	delegateMsg := stakingtypes.NewMsgDelegate(addr, val, sdk.NewCoin(utils.BaseDenom, amount))
+	delegateMsg := stakingtypes.NewMsgDelegate(addr.String(), val.String(), sdk.NewCoin(utils.BaseDenom, amount))
 
 	dec := cosmosante.NewVestingDelegationDecorator(s.app.AccountKeeper, s.app.StakingKeeper, types.ModuleCdc)
 	err = testutil.ValidateAnteForMsgs(s.ctx, dec, delegateMsg)

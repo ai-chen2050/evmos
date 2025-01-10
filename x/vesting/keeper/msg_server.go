@@ -23,7 +23,7 @@ import (
 
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 
-	"github.com/armon/go-metrics"
+	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -335,10 +335,17 @@ func (k Keeper) addGrant(
 	grantCoins sdk.Coins,
 ) error {
 	// how much is really delegated?
-	bondedAmt := k.stakingKeeper.GetDelegatorBonded(ctx, va.GetAddress())
-	unbondingAmt := k.stakingKeeper.GetDelegatorUnbonding(ctx, va.GetAddress())
+	bondedAmt, err := k.stakingKeeper.GetDelegatorBonded(ctx, va.GetAddress())
+	if err != nil {
+		return err
+	}
+	unbondingAmt, err := k.stakingKeeper.GetDelegatorUnbonding(ctx, va.GetAddress())
+	if err != nil {
+		return err
+	}
 	delegatedAmt := bondedAmt.Add(unbondingAmt)
-	delegated := sdk.NewCoins(sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), delegatedAmt))
+	denom, err := k.stakingKeeper.BondDenom(ctx)
+	delegated := sdk.NewCoins(sdk.NewCoin(denom, delegatedAmt))
 
 	// modify schedules for the new grant
 	newLockupStart, newLockupEnd, newLockupPeriods := types.DisjunctPeriods(va.GetStartTime(), grantStartTime, va.LockupPeriods, grantLockupPeriods)
