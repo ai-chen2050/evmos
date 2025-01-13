@@ -8,20 +8,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	
+
 	"github.com/hetu-project/hetu-hub/v1/crypto/hd"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/tests/integration/ledger/mocks"
 	"github.com/hetu-project/hetu-hub/v1/testutil"
 	utiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
-	hhubtypes "github.com/hetu-project/hetu-hub/v1/types"
-	
+
 	"github.com/spf13/cobra"
-	
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil"
 	sdktestutilcli "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktypestestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -40,7 +40,7 @@ var (
 var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	var (
 		receiverAccAddr sdk.AccAddress
-		encCfg          hhubtypes.EncodingConfig
+		encCfg          sdktypestestutil.TestEncodingConfig
 		kr              keyring.Keyring
 		mockedIn        sdktestutil.BufferReader
 		clientCtx       client.Context

@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
@@ -11,12 +12,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/hetu-project/hetu-hub/v1/encoding"
-	"github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/x/evm"
 	"github.com/hetu-project/hetu-hub/v1/x/feemarket"
 )
 
-func MakeConfigForTest(moduleManager module.BasicManager) types.EncodingConfig {
+func MakeConfigForTest(moduleManager module.BasicManager) sdktestutil.TestEncodingConfig {
 	config := encoding.MakeConfig()
 	if moduleManager == nil {
 		moduleManager = module.NewBasicManager(

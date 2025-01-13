@@ -125,6 +125,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	# Change proposal periods to pass within a reasonable time for local testing
 	sed -i.bak 's/"max_deposit_period": "172800s"/"max_deposit_period": "30s"/g' "$HOMEDIR"/config/genesis.json
 	sed -i.bak 's/"voting_period": "172800s"/"voting_period": "30s"/g' "$HOMEDIR"/config/genesis.json
+	sed -i.bak 's/"expedited_voting_period": "86400s"/"expedited_voting_period": "15s"/g' "$GENESIS"
 
 	# set custom pruning settings
 	sed -i.bak 's/pruning = "default"/pruning = "custom"/g' "$APP_TOML"
@@ -164,4 +165,5 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
+echo "start: localnode"
 hhubd start --metrics "$TRACE" --log_level $LOGLEVEL --minimum-gas-prices=0.0001ahhub --json-rpc.api eth,txpool,personal,net,debug,web3 --api.enable --home "$HOMEDIR"

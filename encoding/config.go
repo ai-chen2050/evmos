@@ -21,15 +21,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	gogoproto "github.com/cosmos/gogoproto/proto"
 	enccodec "github.com/hetu-project/hetu-hub/v1/encoding/codec"
-	hhubconfig "github.com/hetu-project/hetu-hub/v1/types"
 )
 
 // MakeConfig creates an EncodingConfig for testing
-func MakeConfig() hhubconfig.EncodingConfig {
+func MakeConfig() sdktestutil.TestEncodingConfig {
 	cdc := amino.NewLegacyAmino()
 	signingOptions := signing.Options{
 		AddressCodec: address.Bech32Codec{
@@ -50,16 +50,16 @@ func MakeConfig() hhubconfig.EncodingConfig {
 		panic(err)
 	}
 	codec := amino.NewProtoCodec(interfaceRegistry)
-	encodingConfig := hhubconfig.EncodingConfig{
+	enccodec.RegisterLegacyAminoCodec(cdc)
+	enccodec.RegisterInterfaces(interfaceRegistry)
+	// This is needed for the EIP712 txs because currently is using
+	// the deprecated method legacytx.StdSignBytes
+	legacytx.RegressionTestingAminoCodec = cdc
+
+	return sdktestutil.TestEncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
 		Codec:             codec,
 		TxConfig:          tx.NewTxConfig(codec, tx.DefaultSignModes),
 		Amino:             cdc,
 	}
-	enccodec.RegisterLegacyAminoCodec(cdc)
-	enccodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	// This is needed for the EIP712 txs because currently is using
-	// the deprecated method legacytx.StdSignBytes
-	legacytx.RegressionTestingAminoCodec = cdc
-	return encodingConfig
 }

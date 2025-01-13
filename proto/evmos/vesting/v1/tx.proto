@@ -1,6 +1,8 @@
 syntax = "proto3";
 package evmos.vesting.v1;
 
+import "cosmos/msg/v1/msg.proto";
+// import "cosmos_proto/cosmos.proto";
 import "cosmos/vesting/v1beta1/vesting.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -10,6 +12,7 @@ option go_package = "github.com/hetu-project/hetu-hub/v1/x/vesting/types";
 
 // Msg defines the vesting Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // CreateClawbackVestingAccount creats a vesting account that is subject to
   // clawback and the configuration of vesting and lockup schedules.
   rpc CreateClawbackVestingAccount(MsgCreateClawbackVestingAccount) returns (MsgCreateClawbackVestingAccountResponse) {
@@ -34,6 +37,7 @@ service Msg {
 // ClawbackVestingAccount.
 message MsgCreateClawbackVestingAccount {
   option (gogoproto.equal) = false;
+  option (cosmos.msg.v1.signer) = "from_address";
 
   // from_address specifies the account to provide the funds and sign the
   // clawback request
@@ -67,6 +71,7 @@ message MsgCreateClawbackVestingAccountResponse {}
 // MsgClawback defines a message that removes unvested tokens from a
 // ClawbackVestingAccount.
 message MsgClawback {
+  option (cosmos.msg.v1.signer) = "funder_address";
   // funder_address is the address which funded the account
   string funder_address = 1;
   // account_address is the address of the ClawbackVestingAccount to claw back
@@ -84,6 +89,7 @@ message MsgClawbackResponse {}
 // MsgUpdateVestingFunder defines a message that updates the funder account of a
 // ClawbackVestingAccount.
 message MsgUpdateVestingFunder {
+  option (cosmos.msg.v1.signer) = "funder_address";
   // funder_address is the current funder address of the ClawbackVestingAccount
   string funder_address = 1;
   // new_funder_address is the new address to replace the existing funder_address
@@ -98,6 +104,7 @@ message MsgUpdateVestingFunderResponse {}
 
 // MsgConvertVestingAccount defines a message that enables converting a vesting account to a eth account
 message MsgConvertVestingAccount {
+  option (cosmos.msg.v1.signer) = "vesting_address";
   // vesting_address is the address of the vesting account to convert
   string vesting_address = 1;
 }

@@ -51,6 +51,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -71,7 +72,6 @@ import (
 	"github.com/hetu-project/hetu-hub/v1/app"
 	cmdcfg "github.com/hetu-project/hetu-hub/v1/cmd/config"
 	evmoskr "github.com/hetu-project/hetu-hub/v1/crypto/keyring"
-	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/utils"
 )
 
@@ -81,16 +81,16 @@ const (
 
 // NewRootCmd creates a new root command for hhubd. It is called once in the
 // main function.
-func NewRootCmd() (*cobra.Command, evmostypes.EncodingConfig) {
+func NewRootCmd() (*cobra.Command, sdktestutil.TestEncodingConfig) {
 	tempApp := app.NewEvmos(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
 		nil, true, nil,
-		tempDir(app.DefaultNodeHome),
+		utils.TempDir(app.DefaultNodeHome),
 		0,
 		encoding.MakeConfig(),
 		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
-		baseapp.SetChainID(utils.MainnetChainID+"-1"),
+		// baseapp.SetChainID(utils.MainnetChainID+"-1"),
 	)
 
 	encodingConfig := tempApp.EncodingConfig()
@@ -161,10 +161,10 @@ func NewRootCmd() (*cobra.Command, evmostypes.EncodingConfig) {
 			banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome,
 			tempApp.GetTxConfig().SigningContext().ValidatorAddressCodec(),
 		),
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		genutilcli.ValidateGenesisCmd(tempApp.BasicModuleManager),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		NewTestnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
+		NewTestnetCmd(tempApp.BasicModuleManager, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
 		pruning.Cmd(a.newApp, app.DefaultNodeHome),
@@ -219,7 +219,6 @@ func queryCommand() *cobra.Command {
 		sdkserver.QueryBlockResultsCmd(),
 	)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -246,7 +245,6 @@ func txCommand() *cobra.Command {
 		authcmd.GetSimulateCmd(),
 	)
 
-	app.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -270,7 +268,7 @@ func initAppConfig() (string, interface{}) {
 }
 
 type appCreator struct {
-	encCfg evmostypes.EncodingConfig
+	encCfg sdktestutil.TestEncodingConfig
 }
 
 // newApp is an appCreator
@@ -383,14 +381,4 @@ func initTendermintConfig() *tmcfg.Config {
 	// cfg.P2P.MaxNumOutboundPeers = 40
 
 	return cfg
-}
-
-func tempDir(defaultHome string) string {
-	dir, err := os.MkdirTemp("", "hhub")
-	if err != nil {
-		dir = defaultHome
-	}
-	defer os.RemoveAll(dir)
-
-	return dir
 }

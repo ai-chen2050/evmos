@@ -10,6 +10,7 @@ option go_package = "github.com/hetu-project/hetu-hub/v1/x/inflation/types";
 
 // Msg defines the evm Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // UpdateParams defined a governance operation for updating the x/inflation module parameters.
   // The authority is hard-coded to the Cosmos SDK x/gov module account
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);

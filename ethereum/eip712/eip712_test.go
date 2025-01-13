@@ -16,6 +16,7 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
 
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
@@ -24,7 +25,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/hetu-project/hetu-hub/v1/cmd/config"
 	"github.com/hetu-project/hetu-hub/v1/encoding"
-	hhubtypes "github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/utils"
 
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -44,7 +44,7 @@ const (
 type EIP712TestSuite struct {
 	suite.Suite
 
-	config                   hhubtypes.EncodingConfig
+	config                   sdktestutil.TestEncodingConfig
 	clientCtx                client.Context
 	useLegacyEIP712TypedData bool
 	denom                    string

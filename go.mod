@@ -263,13 +263,16 @@ require (
 replace (
 	// ledger wallet in ./wallets, version: github.com/evmos/evmos-ledger-go v0.3.0-rc0
 	// need this replace when importing cosmos/rosetta pkg
-	// cosmossdk.io/core => cosmossdk.io/core v0.11.0
 	// need this replace to pick up the store changes (Copy func) in our cosmos-sdk fork
-	// cosmossdk.io/store => github.com/evmos/cosmos-sdk/store v0.0.0-20240718141609-414cbd051fbe
+	cosmossdk.io/core => cosmossdk.io/core v0.11.0
+	cosmossdk.io/store => github.com/evmos/cosmos-sdk/store v0.0.0-20240718141609-414cbd051fbe
+	// cosmossdk.io/store => github.com/crypto-org-chain/cosmos-sdk/store v0.0.0-20241015015202-783e224f9517
+	// cosmossdk.io/x/tx => github.com/crypto-org-chain/cosmos-sdk/x/tx v0.0.0-20241015015202-783e224f9517
+	// github.com/cosmos/cosmos-sdk => github.com/crypto-org-chain/cosmos-sdk v0.50.6-0.20241015015202-783e224f9517
 
 	// use cosmos keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
-	// github.com/cosmos/cosmos-sdk => github.com/evmos/cosmos-sdk v0.50.9-evmos
+	github.com/cosmos/cosmos-sdk => github.com/evmos/cosmos-sdk v0.50.9-evmos
 	// v0.38.x
 	// github.com/cometbft/cometbft => github.com/yihuang/cometbft v0.38.0-alpha.1.0.20241106081635-f702b8b3f890
 	// release/v1.11.x

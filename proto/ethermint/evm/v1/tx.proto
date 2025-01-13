@@ -12,6 +12,7 @@ option go_package = "github.com/hetu-project/hetu-hub/v1/x/evm/types";
 
 // Msg defines the evm Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // EthereumTx defines a method submitting Ethereum transactions.
   rpc EthereumTx(MsgEthereumTx) returns (MsgEthereumTxResponse) {
     option (google.api.http).post = "/evmos/evm/v1/ethereum_tx";
@@ -23,6 +24,7 @@ service Msg {
 
 // MsgEthereumTx encapsulates an Ethereum transaction as an SDK message.
 message MsgEthereumTx {
+  option (cosmos.msg.v1.signer) = "from";
   option (gogoproto.goproto_getters) = false;
 
   // data is inner transaction data of the Ethereum transaction

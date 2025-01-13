@@ -17,6 +17,7 @@
 package utils
 
 import (
+	"os"
 	"strings"
 
 	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
@@ -97,4 +98,14 @@ func GetEvmosAddressFromBech32(address string) (sdk.AccAddress, error) {
 	}
 
 	return sdk.AccAddress(addressBz), nil
+}
+
+func TempDir(defaultHome string) string {
+	dir, err := os.MkdirTemp("", "hhub")
+	if err != nil {
+		dir = defaultHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }

@@ -9,13 +9,14 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
+	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
 	evmenc "github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/indexer"
 	utiltx "github.com/hetu-project/hetu-hub/v1/testutil/tx"
-	hhubconfig "github.com/hetu-project/hetu-hub/v1/types"
 	"github.com/hetu-project/hetu-hub/v1/utils"
 	"github.com/hetu-project/hetu-hub/v1/x/evm/types"
 	"github.com/stretchr/testify/require"
@@ -188,6 +189,6 @@ func TestKVIndexer(t *testing.T) {
 }
 
 // MakeEncodingConfig creates the EncodingConfig
-func MakeEncodingConfig() hhubconfig.EncodingConfig {
+func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 	return evmenc.MakeConfig()
 }

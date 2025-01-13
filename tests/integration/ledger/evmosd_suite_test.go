@@ -31,9 +31,9 @@ import (
 	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 	cosmosledger "github.com/cosmos/cosmos-sdk/crypto/ledger"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	clientkeys "github.com/hetu-project/hetu-hub/v1/client/keys"
 	evmoskeyring "github.com/hetu-project/hetu-hub/v1/crypto/keyring"
-	hetutypes "github.com/hetu-project/hetu-hub/v1/types"
 	feemarkettypes "github.com/hetu-project/hetu-hub/v1/x/feemarket/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -112,7 +112,7 @@ func (suite *LedgerTestSuite) SetupEvmosApp() {
 	})
 }
 
-func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, encCfg hetutypes.EncodingConfig) (keyring.Keyring, client.Context, context.Context) {
+func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, encCfg sdktestutil.TestEncodingConfig) (keyring.Keyring, client.Context, context.Context) {
 	kr, err := keyring.New(
 		sdk.KeyringServiceName(),
 		keyring.BackendTest,

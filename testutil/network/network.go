@@ -62,6 +62,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
@@ -70,6 +71,7 @@ import (
 
 	"github.com/hetu-project/hetu-hub/v1/encoding"
 	"github.com/hetu-project/hetu-hub/v1/server/config"
+	"github.com/hetu-project/hetu-hub/v1/utils"
 	testutilconfig "github.com/hetu-project/hetu-hub/v1/testutil/config"
 	evmostypes "github.com/hetu-project/hetu-hub/v1/types"
 	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
@@ -121,7 +123,16 @@ type Config struct {
 func DefaultConfig() Config {
 	encCfg := testutilconfig.MakeConfigForTest(nil)
 	chianID := fmt.Sprintf("hhub_%d-1", tmrand.Int63n(9999999999999)+1)
-
+	app := app.NewEvmos(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil, true, nil,
+		utils.TempDir(app.DefaultNodeHome),
+		0,
+		encoding.MakeConfig(),
+		simtestutil.NewAppOptionsWithFlagHome(app.DefaultNodeHome),
+		baseapp.SetChainID(utils.MainnetChainID+"-1"),
+	)
 	return Config{
 		Codec:             encCfg.Codec,
 		TxConfig:          encCfg.TxConfig,
@@ -129,7 +140,7 @@ func DefaultConfig() Config {
 		InterfaceRegistry: encCfg.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor:    NewAppConstructor(chianID),
-		GenesisState:      app.ModuleBasics.DefaultGenesis(encCfg.Codec),
+		GenesisState:      simapp.GenesisState(app.DefaultGenesis()),
 		TimeoutCommit:     3 * time.Second,
 		ChainID:           chianID,
 		NumValidators:     4,
