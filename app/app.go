@@ -384,7 +384,7 @@ func NewEvmos(
 		distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, capabilitytypes.StoreKey, consensusparamtypes.StoreKey,
-		feegrant.StoreKey, authzkeeper.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey, crisistypes.StoreKey,
 		// ibc keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey,
 		// ica keys
@@ -399,7 +399,7 @@ func NewEvmos(
 	)
 
 	// Add the EVM transient store key
-	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.ObjectStoreKey, feemarkettypes.TransientKey)
+	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// load state streaming if enabled
@@ -551,7 +551,7 @@ func NewEvmos(
 		app.GetSubspace(feemarkettypes.ModuleName),
 	)
 
-	// Set authority to x/gov module account to only expect the module account to update params
+	// Set authority to x/gov module accountpx/evm/keeper/keeper.go to only expect the module account to update params
 	app.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], authtypes.NewModuleAddress(govtypes.ModuleName),
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,

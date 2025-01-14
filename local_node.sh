@@ -50,8 +50,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf "$HOMEDIR"
 
 	# Set client config
-	hhubd config keyring-backend $KEYRING --home "$HOMEDIR"
-	hhubd config chain-id $CHAINID --home "$HOMEDIR"
+	hhubd config set client chain-id "$CHAINID" --home "$HOMEDIR"
+	hhubd config set client keyring-backend "$KEYRING" --home "$HOMEDIR"
 
 	# If keys exist they should be deleted
 	for KEY in "${KEYS[@]}"; do

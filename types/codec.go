@@ -18,6 +18,7 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -25,7 +26,7 @@ import (
 // implementations and interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
-		(*authtypes.AccountI)(nil),
+		(*sdk.AccountI)(nil),
 		&EthAccount{},
 	)
 	registry.RegisterImplementations(
