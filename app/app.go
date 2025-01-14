@@ -148,7 +148,6 @@ import (
 	_ "github.com/hetu-project/hetu-hub/v1/client/docs/statik"
 
 	"github.com/hetu-project/hetu-hub/v1/app/ante"
-	v12 "github.com/hetu-project/hetu-hub/v1/app/upgrades/v12"
 	"github.com/hetu-project/hetu-hub/v1/x/epochs"
 	epochskeeper "github.com/hetu-project/hetu-hub/v1/x/epochs/keeper"
 	epochstypes "github.com/hetu-project/hetu-hub/v1/x/epochs/types"
@@ -384,12 +383,14 @@ func NewEvmos(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey,
-		evidencetypes.StoreKey, capabilitytypes.StoreKey,
+		evidencetypes.StoreKey, capabilitytypes.StoreKey, consensusparamtypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey,
 		// ibc keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey,
 		// ica keys
 		icahosttypes.StoreKey,
+		// ibc rate-limit keys
+		ratelimittypes.StoreKey,
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// evmos keys
@@ -1280,10 +1281,10 @@ func initParamsKeeper(
 }
 
 func (app *Evmos) setupUpgradeHandlers() {
-	// v12 upgrade handler
+	// v0 upgrade handler
 	// app.UpgradeKeeper.SetUpgradeHandler(
-	// 	v12.UpgradeName,
-	// 	v12.CreateUpgradeHandler(
+	// 	v0.UpgradeName,
+	// 	v0.CreateUpgradeHandler(
 	// 		app.mm, app.configurator,
 	// 		app.DistrKeeper,
 	// 	),
@@ -1304,8 +1305,8 @@ func (app *Evmos) setupUpgradeHandlers() {
 	var storeUpgrades *storetypes.StoreUpgrades
 
 	switch upgradeInfo.Name {
-	case v12.UpgradeName:
-		// no store upgrades
+	// case v0.UpgradeName:
+	// no store upgrades
 	default:
 		// no store upgrades
 	}

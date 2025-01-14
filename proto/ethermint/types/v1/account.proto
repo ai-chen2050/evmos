@@ -1,6 +1,7 @@
 syntax = "proto3";
 package ethermint.types.v1;
 
+// import "amino/amino.proto";
 import "cosmos/auth/v1beta1/auth.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -10,6 +11,7 @@ option go_package = "github.com/hetu-project/hetu-hub/v1/types";
 // EthAccount implements the authtypes.AccountI interface and embeds an
 // authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
 message EthAccount {
+  // option (amino.name) = "evmos/x/evm/Params";
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.equal) = false;
