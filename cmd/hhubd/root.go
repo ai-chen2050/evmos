@@ -146,7 +146,7 @@ func NewRootCmd() (*cobra.Command, sdktestutil.TestEncodingConfig) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
-	a := appCreator{encodingConfig}
+	a := appCreator{encoding.MakeConfig()}
 	rootCmd.AddCommand(
 		evmosclient.ValidateChainID(
 			InitCmd(tempApp.BasicModuleManager, app.DefaultNodeHome),
