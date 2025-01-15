@@ -173,7 +173,7 @@ func (args *TransactionArgs) ToTransaction() *MsgEthereumTx {
 func (args *TransactionArgs) ToMessage(globalGasCap uint64, baseFee *big.Int) (core.Message, error) {
 	// Reject invalid combinations of pre- and post-1559 fee styles
 	if args.GasPrice != nil && (args.MaxFeePerGas != nil || args.MaxPriorityFeePerGas != nil) {
-		return core.Message{}, errors.New("both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified")
+		return ethtypes.Message{}, errors.New("both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified")
 	}
 
 	// Set sender address or use zero address if none specified.
@@ -240,19 +240,7 @@ func (args *TransactionArgs) ToMessage(globalGasCap uint64, baseFee *big.Int) (c
 		nonce = uint64(*args.Nonce)
 	}
 
-	msg := core.Message{
-		From:              addr,
-		To:                args.To,
-		Nonce:             nonce,
-		Value:             value,
-		GasLimit:          gas,
-		GasPrice:          gasPrice,
-		GasFeeCap:         gasFeeCap,
-		GasTipCap:         gasTipCap,
-		Data:              data,
-		AccessList:        accessList,
-		SkipAccountChecks: true,
-	}
+	msg := ethtypes.NewMessage(addr, args.To, nonce, value, gas, gasPrice, gasFeeCap, gasTipCap, data, accessList, true)
 	return msg, nil
 }
 

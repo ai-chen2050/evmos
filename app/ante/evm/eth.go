@@ -171,7 +171,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	blockHeight := big.NewInt(ctx.BlockHeight())
 	homestead := ethCfg.IsHomestead(blockHeight)
 	istanbul := ethCfg.IsIstanbul(blockHeight)
-	shanghai := ethCfg.IsShanghai(blockHeight.Uint64())
+	// shanghai := ethCfg.IsShanghai(blockHeight.Uint64())
 	var events sdk.Events
 
 	// Use the lowest priority of all the messages as the final one.
@@ -200,7 +200,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			gasWanted += txData.GetGas()
 		}
 
-		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, shanghai, ctx.IsCheckTx())
+		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
 		}
@@ -324,12 +324,12 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 
 		// check that caller has enough balance to cover asset transfer for **topmost** call
 		// NOTE: here the gas consumed is from the context with the infinite gas meter
-		if value.Sign() > 0 && !evm.Context.CanTransfer(stateDB, coreMsg.From, value) {
+		if value.Sign() > 0 && !evm.Context.CanTransfer(stateDB, coreMsg.From(), value) {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrInsufficientFunds,
 				"failed to transfer %s from address %s using the EVM block context transfer function",
-				coreMsg.Value,
-				coreMsg.From,
+				coreMsg.Value(),
+				coreMsg.From(),
 			)
 		}
 	}

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -36,6 +37,8 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	evmoskr "github.com/hetu-project/hetu-hub/v1/crypto/keyring"
+	"github.com/hetu-project/hetu-hub/v1/types"
+	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
 
 	vestingcli "github.com/hetu-project/hetu-hub/v1/x/vesting/client/cli"
 	vestingtypes "github.com/hetu-project/hetu-hub/v1/x/vesting/types"
@@ -214,7 +217,10 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				)
 
 			default:
-				genAccount = baseAccount
+				genAccount = &types.EthAccount{
+					BaseAccount: baseAccount,
+					CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
+				}
 			}
 
 			if err := genAccount.Validate(); err != nil {
