@@ -17,12 +17,15 @@
 package utils
 
 import (
+	"math/big"
 	"os"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/hetu-project/hetu-hub/v1/crypto/ethsecp256k1"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
@@ -35,6 +38,9 @@ const (
 	MainnetChainID = "hhub_9001"
 	// TestnetChainID defines the Hhubd EIP155 chain ID for testnet
 	TestnetChainID = "hhub_9000"
+	// TestingChainID defines the Evmos EIP155 chain ID for testing purposes
+	// like the local node.
+	TestingChainID = "evmos_9002"
 	// BaseDenom defines the Hhubd mainnet denomination
 	BaseDenom = "ahhub"
 )
@@ -108,4 +114,24 @@ func TempDir(defaultHome string) string {
 	defer os.RemoveAll(dir)
 
 	return dir
+}
+
+// helper function to parse string to bigInt
+func StringToBigInt(str string) *big.Int {
+	if str == "" {
+		return nil
+	}
+	res, ok := sdkmath.NewIntFromString(str)
+	if !ok {
+		return nil
+	}
+	return res.BigInt()
+}
+
+func StringToAddress(toStr string) *common.Address {
+	if toStr == "" {
+		return nil
+	}
+	addr := common.HexToAddress(toStr)
+	return &addr
 }

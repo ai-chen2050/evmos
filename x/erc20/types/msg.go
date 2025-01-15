@@ -22,8 +22,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
+	txsigning "cosmossdk.io/x/tx/signing"
+	protov2 "google.golang.org/protobuf/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
+
+	erc20api "github.com/hetu-project/hetu-hub/v1/api/evmos/erc20/v1"
 )
 
 var (
@@ -36,6 +40,11 @@ const (
 	TypeMsgConvertCoin  = "convert_coin"
 	TypeMsgConvertERC20 = "convert_ERC20"
 )
+
+var MsgConvertERC20CustomGetSigner = txsigning.CustomGetSigner{
+	MsgType: protov2.MessageName(&erc20api.MsgConvertERC20{}),
+	Fn:      GetERC20Signers,
+}
 
 // NewMsgConvertCoin creates a new instance of MsgConvertCoin
 func NewMsgConvertCoin(coin sdk.Coin, receiver common.Address, sender sdk.AccAddress) *MsgConvertCoin { //nolint: interfacer

@@ -21,3 +21,5 @@ done
 # move proto files to the right places
 cp -r github.com/hetu-project/hetu-hub/v*/* ./
 rm -rf github.com
+
+sh ./scripts/protocgen-pulsar.sh

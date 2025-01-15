@@ -25,7 +25,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	gogoproto "github.com/cosmos/gogoproto/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
 	enccodec "github.com/hetu-project/hetu-hub/v1/encoding/codec"
+	erc20types "github.com/hetu-project/hetu-hub/v1/x/erc20/types"
+	evmtypes "github.com/hetu-project/hetu-hub/v1/x/evm/types"
 )
 
 // MakeConfig creates an EncodingConfig for testing
@@ -38,6 +42,10 @@ func MakeConfig() sdktestutil.TestEncodingConfig {
 		ValidatorAddressCodec: address.Bech32Codec{
 			Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
 		},
+		CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
+			evmtypes.MsgEthereumTxCustomGetSigner.MsgType:     evmtypes.MsgEthereumTxCustomGetSigner.Fn,
+			erc20types.MsgConvertERC20CustomGetSigner.MsgType: erc20types.MsgConvertERC20CustomGetSigner.Fn,
+		},
 	}
 	interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
 		ProtoFiles:     gogoproto.HybridResolver,
@@ -46,9 +54,7 @@ func MakeConfig() sdktestutil.TestEncodingConfig {
 	if err != nil {
 		panic(err)
 	}
-	if err := interfaceRegistry.SigningContext().Validate(); err != nil {
-		panic(err)
-	}
+
 	codec := amino.NewProtoCodec(interfaceRegistry)
 	enccodec.RegisterLegacyAminoCodec(cdc)
 	enccodec.RegisterInterfaces(interfaceRegistry)

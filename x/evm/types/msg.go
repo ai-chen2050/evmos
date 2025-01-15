@@ -21,6 +21,7 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
 	protov2 "google.golang.org/protobuf/proto"
 
 	errorsmod "cosmossdk.io/errors"
@@ -34,6 +35,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
+	evmapi "github.com/hetu-project/hetu-hub/v1/api/ethermint/evm/v1"
 	"github.com/hetu-project/hetu-hub/v1/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -55,6 +57,11 @@ const (
 	// TypeMsgEthereumTx defines the type string of an Ethereum transaction
 	TypeMsgEthereumTx = "ethereum_tx"
 )
+
+var MsgEthereumTxCustomGetSigner = txsigning.CustomGetSigner{
+	MsgType: protov2.MessageName(&evmapi.MsgEthereumTx{}),
+	Fn:      GetEVMSigners,
+}
 
 // NewTx returns a reference to a new Ethereum transaction message.
 func NewTx(
@@ -322,7 +329,7 @@ func (msg MsgEthereumTx) AsTransaction() *ethtypes.Transaction {
 
 // AsMessage creates an Ethereum core.Message from the msg fields
 func (msg MsgEthereumTx) AsMessage(signer ethtypes.Signer, baseFee *big.Int) (core.Message, error) {
-	
+
 	ethmsg, err := core.TransactionToMessage(msg.AsTransaction(), signer, baseFee)
 	if err != nil {
 		return core.Message{}, err
