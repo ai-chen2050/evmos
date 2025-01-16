@@ -53,8 +53,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up e2e integration test suite...")
 	var err error
 
-	s.upgradeParams, err = upgrade.LoadUpgradeParams(upgradePath)
-	s.Require().NoError(err, "can't load upgrade params")
+	// new chain no upgrade plan for now
+	// s.upgradeParams, err = upgrade.LoadUpgradeParams(upgradePath)
+	// s.Require().NoError(err, "can't load upgrade params")
 
 	s.upgradeManager, err = upgrade.NewManager(defaultManagerNetwork)
 	s.Require().NoError(err, "upgrade manager creation error")
@@ -277,9 +278,6 @@ func (s *IntegrationTestSuite) executeQueries() {
 		{"feemarket: base-fee", "feemarket", "base-fee"},
 		{"feemarket: block-gas", "feemarket", "block-gas"},
 		{"feemarket: block-gas", "feemarket", "block-gas"},
-		{"incentives: params", "incentives", "params"},
-		{"incentives: allocation-meters", "incentives", "allocation-meters"},
-		{"incentives: incentives", "incentives", "incentives"},
 	}
 
 	for _, tc := range testCases {

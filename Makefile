@@ -11,7 +11,7 @@ HHUB_DIR = hhub
 BUILDDIR ?= $(CURDIR)/build
 HTTPS_GIT := https://github.com/hetu-project/hetu-hub.git
 DOCKER := $(shell which docker)
-NAMESPACE := tharsishq
+NAMESPACE := hetuorg
 PROJECT := hhub
 DOCKER_IMAGE := $(NAMESPACE)/$(PROJECT)
 COMMIT_HASH := $(shell git rev-parse --short=7 HEAD)

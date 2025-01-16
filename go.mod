@@ -262,17 +262,16 @@ require (
 )
 
 replace (
-	// ledger wallet in ./wallets, version: github.com/evmos/evmos-ledger-go v0.3.0-rc0
 	// need this replace when importing cosmos/rosetta pkg
-	// need this replace to pick up the store changes (Copy func) in our cosmos-sdk fork
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
-	cosmossdk.io/store => github.com/evmos/cosmos-sdk/store v0.0.0-20240718141609-414cbd051fbe
+	// need this replace to pick up the store changes (Copy func) in our cosmos-sdk fork
+	cosmossdk.io/store => github.com/hetu-project/cosmos-sdk/store v0.0.0-20240718141609-414cbd051fbe
 	// use cosmos keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
-	github.com/cosmos/cosmos-sdk => github.com/evmos/cosmos-sdk v0.50.9-evmos
+	github.com/cosmos/cosmos-sdk => github.com/hetu-project/cosmos-sdk v0.50.9-hetu
 
 	// use geth fork
-	github.com/ethereum/go-ethereum => github.com/evmos/go-ethereum v1.10.26-evmos-rc4
+	github.com/ethereum/go-ethereum => github.com/hetu-project/go-ethereum v1.10.26-hetu
 	// Fix upstream GHSA-h395-qcrw-5vmq vulnerability. Security Advisory https://github.com/advisories/GHSA-h395-qcrw-5vmq
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
