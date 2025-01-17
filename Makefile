@@ -472,7 +472,7 @@ localnet-build:
 
 # Start a 4-node testnet locally
 localnet-start: localnet-stop localnet-build
-	@if ! [ -f build/node0/$(HHUB_BINARY)/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/hhub:Z hhub/node "./hhubd testnet init-files --v 4 -o /hhub --keyring-backend=test --starting-ip-address 192.167.10.2 --chain-id hhub_9000-1"; fi
+	@if ! [ -f build/node0/$(HHUB_BINARY)/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/hhub:Z hhub/node "./hhubd testnet init-files --v 4 -o /hhub --keyring-backend=test --starting-ip-address 192.167.0.2 --chain-id hhub_9000-1"; fi
 	docker-compose up -d
 
 # Stop testnet

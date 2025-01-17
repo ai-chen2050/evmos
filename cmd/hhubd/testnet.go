@@ -54,6 +54,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	clientcfg "github.com/cosmos/cosmos-sdk/client/config"
 
 	"github.com/hetu-project/hetu-hub/v1/crypto/hd"
 	"github.com/hetu-project/hetu-hub/v1/server/config"
@@ -371,6 +372,13 @@ func initTestnetFiles(
 		}
 
 		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appConfig)
+		
+		// write client toml config file 		
+		clientCtx.HomeDir = nodeDir
+		_, err = clientcfg.ReadFromClientConfig(clientCtx)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := initGenFiles(clientCtx, mbm, args.chainID, cmdcfg.BaseDenom, genAccounts, genBalances, genFiles, args.numValidators); err != nil {
@@ -429,7 +437,7 @@ func initGenFiles(
 	var govGenState govv1.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState)
 
-	govGenState.DepositParams.MinDeposit[0].Denom = coinDenom
+	govGenState.Params.MinDeposit[0].Denom = coinDenom
 	appGenState[govtypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(&govGenState)
 
 	var crisisGenState crisistypes.GenesisState
