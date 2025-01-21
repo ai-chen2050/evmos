@@ -194,6 +194,14 @@ func NewRootCmd() (*cobra.Command, sdktestutil.TestEncodingConfig) {
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 
+	autoCliOpts := tempApp.AutoCliOpts()
+	initClientCtx, _ = clientcfg.ReadFromClientConfig(initClientCtx)
+	autoCliOpts.ClientCtx = initClientCtx
+
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
+	
 	return rootCmd, encodingConfig
 }
 
