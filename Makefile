@@ -510,7 +510,7 @@ localnet-show-logstream:
 ###############################################################################
 
 PACKAGE_NAME:=github.com/hhub/hhub
-GOLANG_CROSS_VERSION  = v1.20
+GOLANG_CROSS_VERSION  = v1.23.3
 GOPATH ?= '$(HOME)/go'
 release-dry-run:
 	docker run \
